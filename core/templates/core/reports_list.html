@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Archive | Kased Khair</title>
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        .report-link { transition: 0.2s; border-left: 5px solid #1a2a3a; margin-bottom: 10px; text-decoration: none; color: inherit; }
+        .report-link:hover { transform: translateX(10px); background: #f8f9fa; border-left-color: #d4af37; }
+    </style>
+</head>
+<body class="bg-light p-4">
+    <div class="container" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold"><i class="fas fa-archive me-2"></i> أرشيف التقارير اليومية</h3>
+            <a href="/" class="btn btn-outline-dark btn-sm">العودة للرئيسية</a>
+        </div>
+        
+        <div class="list-group">
+            {% for report in reports %}
+            <a href="{% url 'report_detail' report.id %}" class="list-group-item list-group-item-action report-link shadow-sm p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-dark me-2">{{ report.dredger.name }}</span>
+                        <span class="fw-bold fs-5">{{ report.date_started|date:"D, d M Y" }}</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-center">لا توجد تقارير حالياً</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

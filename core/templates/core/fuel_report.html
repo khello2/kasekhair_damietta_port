@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fuel Monitoring - {{ dredger.name }}</title>
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .fuel-card { border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .header-bg { background: var(--navy); color: white; padding: 40px 0; border-bottom: 5px solid var(--gold); }
+    </style>
+</head>
+<body>
+
+    <div class="header-bg text-center mb-5">
+        <div class="container">
+            <h1><i class="fas fa-gas-pump me-3 text-gold"></i>Fuel Management System</h1>
+            <p class="lead">Vessel: <strong>{{ dredger.name }}</strong></p>
+            <a href="{% url 'home' %}" class="btn btn-outline-light btn-sm mt-3"><i class="fas fa-arrow-left me-1"></i> Back to Radar</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 4 Summary Boxes -->
+        <div class="row g-4 mb-5 text-center">
+            <div class="col-md-3">
+                <div class="card fuel-card p-3 bg-info text-white">
+                    <small>STOCK REMAINING</small>
+                    <h3 class="fw-bold">{{ stock_remaining }} L</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card fuel-card p-3 bg-success text-white">
+                    <small>TOTAL SUPPLIED</small>
+                    <h3 class="fw-bold">{{ total_added }} L</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card fuel-card p-3 bg-danger text-white">
+                    <small>TOTAL CONSUMED</small>
+                    <h3 class="fw-bold">{{ total_consumed }} L</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card fuel-card p-3 bg-dark text-warning border border-warning">
+                    <small>CURRENT NET (IN VESSEL)</small>
+                    <h3 class="fw-bold">{{ in_vessel }} L</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card fuel-card shadow-lg">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-history me-2"></i>Fuel Transaction History</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Operator</th>
+                            <th>Supplied (+)</th>
+                            <th>Consumed (-)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.start_time|date:"d M Y - H:i" }}</td>
+                            <td>{{ record.operator.name }}</td>
+                            <td class="text-success fw-bold">{% if record.fuel_added > 0 %}+{{ record.fuel_added }}{% else %}-{% endif %}</td>
+                            <td class="text-danger fw-bold">{% if record.fuel_usage > 0 %}-{{ record.fuel_usage }}{% else %}-{% endif %}</td>
+                            <td><span class="badge bg-light text-dark">{{ record.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center py-4">No fuel records found for this vessel.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

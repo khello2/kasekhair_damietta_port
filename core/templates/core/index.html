@@ -1,0 +1,327 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kased Khair | Project Portal</title>
+    
+    <!-- الروابط الأساسية للمكتبات -->
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --light-bg: #f4f7f6; }
+        body { background-color: var(--light-bg); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        
+        /* Navigation & Header */
+        .top-nav { background: white; padding: 10px 50px; display: flex; justify-content: flex-end; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header-section { background: white; text-align: center; padding: 25px 20px; border-bottom: 5px solid var(--gold); }
+        .logo { width: 160px; margin-bottom: 10px; }
+        
+        /* تنسيق الأزرار الذكية الجديدة */
+.action-buttons-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-action {
+    flex: 1;
+    max-width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 10px;
+    border-radius: 15px;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-action span {
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+.icon-circle {
+    width: 35px;
+    height: 35px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+/* تنسيق نصوص الكروت لضمان وضوحها */
+.card-item h5 {
+    color: var(--navy) !important; /* لون كحلي داكن */
+    font-weight: 800 !important;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* للتأكيد على لون الأيقونات */
+.card-item i {
+    margin-bottom: 10px;
+}
+
+/* الألوان الحيوية */
+.btn-start { background: linear-gradient(145deg, #2ecc71, #27ae60); }
+.btn-stop { background: linear-gradient(145deg, #e74c3c, #c0392b); }
+.btn-handover { background: linear-gradient(145deg, #f1c40f, #f39c12); }
+.btn-handover span, .btn-handover .icon-circle { color: #2c3e50; }
+
+.btn-action:hover {
+    transform: translateY(-5px);
+    filter: brightness(1.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+}
+
+/* التكيف مع الموبايل */
+@media (max-width: 768px) {
+    .btn-action { padding: 8px 5px; }
+    .btn-action span { font-size: 0.75rem; }
+    .icon-circle { width: 30px; height: 30px; font-size: 0.8rem; }
+}
+
+        /* شريط الحالة الحي */
+        .live-status-container { background: var(--navy); color: white; padding: 20px 0; border-bottom: 3px solid var(--gold); }
+        .vessel-row { 
+            background: rgba(56, 135, 138, 0.15); 
+            border-radius: 12px; padding: 15px; margin-bottom: 12px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            transition: 0.3s;
+        }
+        .info-label { color: var(--gold); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 1px; }
+        .phone-link { color: white; text-decoration: none; font-weight: bold; transition: 0.2s; }
+        .phone-link:hover { color: var(--gold); }
+        .action-btn {
+        border-radius: 50px; /* جعل الأزرار دائرية الأطراف (عصرية) */
+        padding: 10px 25px;
+        font-weight: 700;
+        transition: 0.3s;
+        border: none;
+        min-width: 150px;
+        color: white !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-success { background: linear-gradient(45deg, #28a745, #218838); }
+    .btn-danger { background: linear-gradient(45deg, #dc3545, #c82333); }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+    .lock-status-box {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed #6c757d;
+        border-radius: 15px;
+        min-width: 250px;
+    }
+        /* الدائرة المتحركة */
+        .status-dot-animated {
+            width: 12px; height: 12px; border-radius: 50%;
+            animation: blinker 1.5s linear infinite;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+        @keyframes blinker { 50% { opacity: 0.3; } }
+
+        /* الشريط الإخباري */
+        .news-ticker-container {
+            background: #fdf7e3; border-bottom: 2px solid var(--gold);
+            height: 45px; display: flex; align-items: center; overflow: hidden;
+        }
+        .ticker-label {
+            background: var(--navy); color: var(--gold); padding: 0 20px;
+            height: 100%; display: flex; align-items: center; font-weight: bold;
+            z-index: 2; white-space: nowrap;
+        }
+        .ticker-item { color: #333; font-weight: 600; font-size: 1rem; margin-right: 15px; }
+        .ticker-separator { color: var(--gold); padding: 0 15px; }
+
+        /* الكروت والبانر */
+        .project-banner { width: 100%; height: 400px; object-fit: cover; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 40px; margin-bottom: 50px; }
+        .card-item { background: white; border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 4px solid transparent; }
+        .card-item:hover { transform: translateY(-8px); border-bottom: 4px solid var(--gold); }
+        .card-item i { font-size: 2.5rem; color: var(--navy); margin-bottom: 15px; }
+        .btn-go { background: var(--navy); color: white; border-radius: 25px; text-decoration: none; padding: 8px 30px; display: inline-block; margin-top: 10px; font-weight: 600; transition: 0.3s; }
+        .btn-go:hover { background: var(--gold); color: white; }
+
+        @media (max-width: 992px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Top Nav -->
+    <div class="top-nav">
+        <a href="/admin" class="text-decoration-none fw-bold" style="color:var(--navy);"><i class="fas fa-cog me-1"></i> Admin Panel</a>
+        <span class="border-start ps-3">User: <strong>{{ user.username }}</strong></span>
+        <form action="/admin/logout/" method="post" style="display:inline;">
+            {% csrf_token %}<button type="submit" class="btn btn-link text-danger p-0 fw-bold ms-3 text-decoration-none">Logout</button>
+        </form>
+    </div>
+
+    <!-- 2. Header -->
+    <div class="header-section">
+        <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+        <h2 style="color:var(--navy); font-weight:800; text-transform: uppercase;">Kased Khair – For General Supplies and Contracting</h2>
+        <h4 style="color:#3b0e8f;">مشروع ردم الحاجز الشرقي - ميناء دمياط</h4>
+        <p class="text-muted small">Eastern Barrier Reclamation Project - Damietta Port</p>
+    </div>
+
+    <!-- الشريط الإخباري -->
+    {% if news %}
+    <div class="news-ticker-container">
+        <div class="ticker-label">تنبيهات العمل</div>
+        <marquee behavior="scroll" direction="right" onmouseover="this.stop();" onmouseout="this.start();">
+            {% for item in news %}
+                <span class="ticker-item">{{ item.message }}</span>
+                <span class="ticker-separator"> ★ </span>
+            {% endfor %}
+        </marquee>
+    </div>
+    {% endif %}
+
+    <!-- 3. Live Status Bar -->
+    <div class="live-status-container">
+        <div class="container">
+            <div class="row">
+            {% for d in dredger_status_list %}
+                {# 1. التأكد من حق الرؤية #}
+                {% if d.can_view %}
+                <div class="col-12 mb-5"> <!-- أضفنا مسافة سفلية mb-5 -->
+                    <div class="vessel-row d-flex justify-content-between align-items-center shadow-sm">
+                        
+                        <!-- القسم الأول: اسم وحالة الكراكة -->
+                        <div class="text-center" style="min-width: 200px;">
+                            <h3 class="mb-1 fw-bold text-white">{{ d.name }}</h3>
+                            <span class="badge shadow-sm 
+                                {% if d.status_code == 'active' %}bg-success
+                                {% elif d.status_code == 'maintenance' %}bg-warning text-dark
+                                {% elif d.status_code == 'basin' %}bg-info text-dark
+                                {% else %}bg-danger{% endif %}" 
+                                style="font-size: 0.75rem; padding: 8px 15px; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px;">
+                                
+                                <div class="status-dot-animated" 
+                                     style="background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %};">
+                                </div>
+                                {{ d.status_text|upper }}
+                            </span>
+                        </div>
+                        
+                        <!-- القسم الثاني: بيانات المشغل الحالي -->
+                        <div class="flex-grow-1 px-4 border-start border-secondary">
+                            <p class="info-label">المشغل الحالي / القائم بالعمل</p>
+                            <div class="fw-bold text-white fs-5">{{ d.op_name }}</div>
+                            <a href="tel:{{ d.op_phone }}" class="phone-link small">
+                                <i class="fas fa-phone-alt me-1 text-gold"></i> {{ d.op_phone }}
+                            </a>
+                        </div>
+
+                        <!-- القسم الثالث: أزرار الإجراء والاتصال المباشر -->
+                        <div class="px-4 border-start border-secondary d-flex align-items-center gap-4">
+                            <div class="text-start">
+                                <p class="info-label">تواصل مع الكراكة</p>
+                                <a href="tel:{{ d.vessel_phone }}" class="phone-link fs-6">
+                                    <i class="fas fa-ship me-1"></i> {{ d.vessel_phone }}
+                                </a>
+                            </div>
+
+                            {% if d.can_add %}
+                            <div class="action-buttons-wrapper d-flex gap-2" style="min-width: 350px;">
+                                {# --- الحالة 1: الكراكة حرة --- #}
+                                {% if d.is_handed_over %}
+                                    <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow py-3">
+                                        <div class="icon-circle"><i class="fas fa-sign-in-alt"></i></div>
+                                        <span class="fs-5">استلام عهدة الكراكة</span>
+                                    </a>
+
+                                {# --- الحالة 2: الكراكة في عهدتي أنا حالياً --- #}
+                                {% elif d.is_owner %}
+                                    {% if d.status_code == 'active' %}
+                                        <a href="{% url 'quick_action' d.object.id 'stop' %}" class="btn-action btn-stop shadow">
+                                            <div class="icon-circle"><i class="fas fa-pause"></i></div>
+                                            <span>تسجيل توقف</span>
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start shadow">
+                                            <div class="icon-circle"><i class="fas fa-play"></i></div>
+                                            <span>بدء تشغيل</span>
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{% url 'quick_action' d.object.id 'handover' %}" class="btn-action btn-handover shadow">
+                                        <div class="icon-circle"><i class="fas fa-external-link-alt"></i></div>
+                                        <span>تسليم العهدة</span>
+                                    </a>
+
+                                {# --- الحالة 3: الكراكة في عهدة زميل آخر --- #}
+                                {% else %}
+                                    <div class="alert alert-dark w-100 mb-0 py-3 rounded-pill text-center border-0 shadow-sm" style="background: rgba(0,0,0,0.2); color: #fff; font-size: 0.8rem;">
+                                        <i class="fas fa-user-shield me-2"></i> 
+                                        العهدة مع: <b>{{ d.op_name }}</b>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- الكروت السفلية تابعة لكل كراكة (داخل حلقة الـ for) -->
+                    <div class="cards-grid mt-3">
+                        <div class="card-item">
+                            <i class="fas fa-gas-pump text-danger"></i>
+                            <h5>FUEL MONITOR</h5>
+                            {# هنا السر: d.object.id سيعمل لأنه داخل الحلقة #}
+                            <a href="{% url 'fuel_report' d.object.id %}" class="btn-go" style="background:#dc3545;">Fuel Details</a>
+                        </div>
+                        <div class="card-item">
+                            <i class="fas fa-file-contract text-info"></i>
+                            <h5>REPORTS</h5>
+                            <a href="/reports/" class="btn-go" style="background:#17a2b8;">View All</a>
+                        </div>
+                        <div class="card-item">
+                            <i class="fas fa-chart-pie text-success"></i>
+                            <h5>ANALYTICS</h5>
+                            <a href="/analytics/" class="btn-go" style="background:#28a745;">Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <!-- المحتوى العام للمشروع (خارج حلقة الكراكات) -->
+            <div class="container mt-4">
+                <img src="{% static 'images/project.jpg' %}" class="project-banner shadow mb-5">
+                <div class="cards-grid">
+                    <div class="card-item">
+                        <i class="fas fa-screwdriver-wrench"></i>
+                        <h5>PIPE FIGHTER</h5>
+                        <a href="/admin/core/pipefighteroperations/add/" class="btn-go">Manage Line</a>
+                    </div>
+                    <div class="card-item">
+                        <i class="fas fa-warehouse text-warning"></i>
+                        <h5>INVENTORY</h5>
+                        <a href="/admin/core/inventoryitem/" class="btn-go" style="background:var(--gold);">Stock</a>
+                    </div>
+                    <div class="card-item">
+                        <i class="fas fa-address-book text-primary"></i>
+                        <h5>STAFF DIRECTORY</h5>
+                        <a href="/admin/core/staff/" class="btn-go" style="background:#0d6efd;">Directory</a>
+                    </div>
+                </div>
+            </div>
+
+    <script src="https://jsdelivr.net"></script>
+    
+</body>
+</html>

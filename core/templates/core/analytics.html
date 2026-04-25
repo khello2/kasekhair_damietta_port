@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Analytics | Kased Khair</title>
+    
+    <!-- روابط المكتبات الكاملة لضمان التشغيل -->
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <script src="https://jsdelivr.net"></script>
+    
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --bg: #f0f2f5; }
+        body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        .kpi-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid var(--gold); height: 100%; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--navy); }
+        .stat-label { color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .chart-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .navbar-brand-custom { font-weight: 800; color: var(--navy) !important; }
+        .table-custom { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .table-custom thead { background: var(--navy); color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand navbar-brand-custom" href="/">
+                <i class="fas fa-chart-line me-2 text-primary"></i> PROJECT ANALYTICS
+            </a>
+            <a href="/" class="btn btn-outline-dark btn-sm rounded-pill px-4">
+                <i class="fas fa-arrow-left me-1"></i> Back to Portal
+            </a>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <!-- Top Summary Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="kpi-card text-center">
+                    <div class="stat-label">Total Production</div>
+                    <div class="stat-value">{{ overall_stats.total_project_m3|floatformat:0 }} <small class="fs-6">m³</small></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card text-center">
+                    <div class="stat-label">Total Progress</div>
+                    <div class="stat-value">{{ overall_stats.total_project_meters|floatformat:0 }} <small class="fs-6">Mtrs</small></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card text-center" style="border-top-color: #28a745;">
+                    <div class="stat-label">Active Vessels</div>
+                    <div class="stat-value">{{ dredger_analytics|length }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card text-center" style="border-top-color: #dc3545;">
+                    <div class="stat-label">Downtime Events</div>
+                    <div class="stat-value text-danger">{{ overall_stats.total_downtime }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Charts Section -->
+            <div class="col-lg-7">
+                <div class="chart-container">
+                    <h5 class="fw-bold mb-4 text-navy"><i class="fas fa-ship me-2"></i> Production Comparison (m³)</h5>
+                    <canvas id="productionBarChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="chart-container">
+                    <h5 class="fw-bold mb-4 text-navy"><i class="fas fa-gas-pump me-2"></i> Fuel Usage Distribution</h5>
+                    <canvas id="fuelPieChart" height="285"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Data Table -->
+        <div class="table-responsive table-custom mt-4">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Vessel Name</th>
+                        <th>Engine Hours</th>
+                        <th>Total Volume (m³)</th>
+                        <th>Distance (m)</th>
+                        <th>Total Fuel (L)</th>
+                        <th>Downtime Log</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in dredger_analytics %}
+                    <tr class="align-middle">
+                        <td class="ps-4 fw-bold text-navy">{{ item.dredger.name }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ item.total_hours }} h</span></td>
+                        <td class="fw-bold text-primary">{{ item.total_m3|floatformat:0 }} m³</td>
+                        <td>{{ item.total_meters }} m</td>
+                        <td>{{ item.total_fuel|floatformat:0 }} L</td>
+                        <td>
+                            {% if item.downtime_count > 0 %}
+                            <span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> {{ item.downtime_count }} Records</span>
+                            {% else %}
+                            <span class="text-success small">Operational</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- الجزء الخاص بمعالجة البيانات وتحويلها لرسوم بيانية -->
+    {{ dredger_analytics_json|json_script:"analytics-data" }}
+
+    <script>
+        // سحب البيانات التي أرسلها الـ view بشكل آمن
+        const rawData = JSON.parse(document.getElementById('analytics-data').textContent);
+        
+        const labels = rawData.map(item => item.dredger_name);
+        const prodData = rawData.map(item => item.total_m3);
+        const fuelData = rawData.map(item => item.total_fuel);
+
+        // رسم بياني للأعمدة (الإنتاج)
+        new Chart(document.getElementById('productionBarChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Quantity (m³)',
+                    data: prodData,
+                    backgroundColor: ['rgba(26, 42, 58, 0.8)', 'rgba(212, 175, 55, 0.8)'],
+                    borderRadius: 8
+                }]
+            },
+            options: { 
+                responsive: true, 
+                plugins: { legend: { display: false } } 
+            }
+        });
+
+        // رسم بياني دائري (السولار)
+        new Chart(document.getElementById('fuelPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: fuelData,
+                    backgroundColor: ['#1a2a3a', '#d4af37'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { 
+                responsive: true, 
+                cutout: '70%' 
+            }
+        });
+    </script>
+</body>
+</html>
