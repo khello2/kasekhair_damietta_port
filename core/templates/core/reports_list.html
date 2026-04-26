@@ -1,37 +1,185 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-    <title>Archive | Kased Khair</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أرشيف تقارير المشروع | قاصد خير</title>
     <link rel="stylesheet" href="https://jsdelivr.net">
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
-        .report-link { transition: 0.2s; border-left: 5px solid #1a2a3a; margin-bottom: 10px; text-decoration: none; color: inherit; }
-        .report-link:hover { transform: translateX(10px); background: #f8f9fa; border-left-color: #d4af37; }
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        
+        .header-section { background: var(--navy); color: white; padding: 40px 0; border-bottom: 5px solid var(--gold); }
+        
+        /* تحسين وضوح زر العودة للرئيسية */
+        .btn-back-home {
+            border: 2px solid var(--gold) !important;
+            color: var(--gold) !important;
+            font-weight: 800 !important;
+            transition: 0.3s;
+        }
+        .btn-back-home:hover {
+            background-color: var(--gold) !important;
+            color: var(--navy) !important;
+        }
+
+        /* تنسيق التبويبات */
+        .nav-tabs { border-bottom: 2px solid var(--navy); }
+        .nav-tabs .nav-link { color: var(--navy); font-weight: bold; margin-left: 5px; border: 1px solid #dee2e6; background: #e9ecef; }
+        .nav-tabs .nav-link.active { background-color: var(--navy) !important; color: var(--gold) !important; border: none; }
+
+        .archive-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white; }
+
+        /* الحل النهائي لزر عرض التقرير الفني */
+        .btn-view-custom {
+            background-color: var(--navy) !important;
+            color: #ffffff !important;
+            border: 1px solid var(--gold) !important;
+            font-weight: bold !important;
+            padding: 6px 18px !important;
+            text-decoration: none !important;
+            display: inline-block;
+            border-radius: 5px;
+        }
+        .btn-view-custom:hover {
+            background-color: var(--gold) !important;
+            color: var(--navy) !important;
+        }
+
+        .table thead th { background-color: var(--navy); color: #ffffff !important; text-align: center; }
+        .table td { vertical-align: middle; text-align: center; }
     </style>
 </head>
-<body class="bg-light p-4">
-    <div class="container" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold"><i class="fas fa-archive me-2"></i> أرشيف التقارير اليومية</h3>
-            <a href="/" class="btn btn-outline-dark btn-sm">العودة للرئيسية</a>
+<body>
+
+<div class="header-section text-center shadow">
+    <div class="container">
+        <h1 class="fw-bold"><i class="fas fa-archive me-2 text-gold"></i>أرشيف تقارير المشروع الموحد</h1>
+        <p class="lead">شركة قاصد خير للمقاولات العمومية والتوريدات</p>
+        <!-- زر العودة للرئيسية المصلح -->
+        <a href="{% url 'home' %}" class="btn btn-back-home btn-sm mt-3 px-4 shadow-sm">
+            <i class="fas fa-home me-1"></i> العودة للرئيسية
+        </a>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <ul class="nav nav-tabs nav-justified mb-4 shadow-sm" id="archiveTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="dredger-tab" data-bs-toggle="tab" data-bs-target="#dredger" type="button">
+                <i class="fas fa-ship me-1"></i> تقارير الكراكات اليومية
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="pipe-tab" data-bs-toggle="tab" data-bs-target="#pipe" type="button">
+                <i class="fas fa-screwdriver-wrench me-1"></i> عمليات الـ Pipe Fighter
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="fuel-tab" data-bs-toggle="tab" data-bs-target="#fuel" type="button">
+                <i class="fas fa-gas-pump me-1"></i> كشوف حساب السولار
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="archiveTabsContent">
+        <!-- 1. قسم الكراكات -->
+        <div class="tab-pane fade show active" id="dredger" role="tabpanel">
+            <div class="card archive-card p-4">
+                <table class="table table-hover table-striped border">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>اسم الكراكة</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in dredger_reports %}
+                        <tr>
+                            <td class="fw-bold">{{ report.date_started|date:"d-m-Y" }}</td>
+                            <td><span class="badge bg-light text-navy border fs-6">{{ report.dredger.name }}</span></td>
+                            <td>
+                                {% if report.is_closed %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> معتمد</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> قيد التسجيل</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- زر عرض التقرير المصلح ألوانه -->
+                                <a href="{% url 'report_detail' report.id %}" class="btn-view-custom">
+                                    <i class="fas fa-file-alt me-1"></i> عرض التقرير الفني
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        
-        <div class="list-group">
-            {% for report in reports %}
-            <a href="{% url 'report_detail' report.id %}" class="list-group-item list-group-item-action report-link shadow-sm p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="badge bg-dark me-2">{{ report.dredger.name }}</span>
-                        <span class="fw-bold fs-5">{{ report.date_started|date:"D, d M Y" }}</span>
+
+        <!-- 2. قسم الـ Pipe Fighter -->
+        <div class="tab-pane fade" id="pipe" role="tabpanel">
+            <div class="card archive-card p-4">
+                <table class="table table-hover border">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الوردية</th>
+                            <th>المسؤول</th>
+                            <th>التفاصيل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in pipe_ops %}
+                        <tr>
+                            <td>{{ op.date|date:"d-m-Y" }}</td>
+                            <td>{{ op.get_shift_display }}</td>
+                            <td class="fw-bold text-navy">{{ op.operator_in_charge.name }}</td>
+                            <td>
+                                <a href="/admin/core/pipefighteroperations/{{ op.id }}/change/" class="btn btn-sm btn-outline-dark fw-bold">
+                                    <i class="fas fa-search me-1"></i> فتح السجل
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. قسم السولار -->
+        <div class="tab-pane fade" id="fuel" role="tabpanel">
+            <div class="card archive-card p-5">
+                <div class="row g-4 justify-content-center">
+                    {% for d in dredgers %}
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center border-secondary shadow-sm">
+                            <div class="card-body">
+                                <i class="fas fa-gas-pump fa-3x text-danger mb-3"></i>
+                                <h5 class="card-title fw-bold text-navy">{{ d.name }}</h5>
+                                <p class="card-text small text-muted">مراقبة المخزون والاستهلاك</p>
+                                <a href="{% url 'fuel_report' d.id %}" class="btn btn-danger w-100 fw-bold">
+                                    <i class="fas fa-chart-line me-1"></i> فتح كشف السولار
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <i class="fas fa-chevron-right text-muted"></i>
+                    {% endfor %}
                 </div>
-            </a>
-            {% empty %}
-            <p class="text-center">لا توجد تقارير حالياً</p>
-            {% endfor %}
+            </div>
         </div>
     </div>
+</div>
+
+<div class="text-center mt-5 mb-5 text-muted small">
+    جميع الحقوق محفوظة لشركة قاصد خير للمقاولات © 2026
+</div>
+
+<script src="https://jsdelivr.net"></script>
 </body>
 </html>

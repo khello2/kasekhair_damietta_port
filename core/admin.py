@@ -5,6 +5,10 @@ from .models import (
     Staff, Dredger, DailyProjectReport, 
     WorkShift, PipeFighterOperations, InventoryItem, NewsTicker, AdminVault, WeeklyRotation
 )
+admin.site.site_header = "شركة قاصد خير للمقاولات"
+admin.site.site_title = "بوابة إدارة المشاريع"
+admin.site.index_title = "لوحة التحكم والعمليات"
+
 
 # 1. عرض الورديات داخل التقرير المجمع (للمدير والمكتب الفني)
 class WorkShiftInline(admin.StackedInline):

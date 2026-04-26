@@ -5,6 +5,7 @@ from django.db.models import Sum, Max, Min, F, Q
 from django.utils import timezone
 from datetime import timedelta, datetime, time
 from .models import NewsTicker, WorkShift, Dredger, PipeFighterOperations, Staff, DailyProjectReport, WeeklyRotation
+from django.contrib.auth.decorators import login_required
 
 # --- 1. وظيفة الإغلاق التلقائي لليوم ---
 def auto_close_old_reports():
@@ -17,7 +18,7 @@ def auto_close_old_reports():
         DailyProjectReport.objects.filter(date_started__lt=now_local.date(), is_closed=False).update(is_closed=True)
     else:
         DailyProjectReport.objects.filter(date_started__lt=now_local.date() - timedelta(days=1), is_closed=False).update(is_closed=True)
-
+@login_required(login_url='/accounts/login/')
 def home(request):
     auto_close_old_reports()
     dredgers = Dredger.objects.all()
@@ -155,19 +156,29 @@ def quick_action(request, dredger_id, action_type):
         )
         return redirect(f'/admin/core/workshift/{new_s.id}/change/?dredger_id={dredger_id}')
 
-    elif action_type == 'stop':
-        target_shift = last_open if (last_open and last_open.operator == staff) else None
+    elif action_type == 'handover' or action_type == 'stop':
+        if last_open and last_open.operator == staff:
+            # تحديد وقت 12 ظهراً اليوم
+            limit_noon = now_local.replace(hour=12, minute=0, second=0, microsecond=0)
+            
+            # إذا كنا الآن بعد 12 والوردية بدأت قبل 12
+            if last_open.start_time.astimezone(cairo_tz) < limit_noon <= now_local:
+                last_open.end_time = limit_noon # فرض الإغلاق الساعة 12
+            else:
+                last_open.end_time = now # الإغلاق بالوقت الحالي الطبيعي
+            
+            if action_type == 'stop':
+                last_open.status = 'breakdown'
+            
+            # توريث القراءات لضمان عدم ظهور أصفار
+            last_open.fuel_end = last_open.fuel_start + last_open.fuel_received
+            last_open.main_engine_end = last_open.main_engine_start
+            last_open.aux_engine_end = last_open.aux_engine_start
+            
+            last_open.save()
+            return redirect(f'/admin/core/workshift/{last_open.id}/change/')
 
-        if target_shift:
-            target_shift.status = 'breakdown'
-            target_shift.end_time = now
-            # إجبار القيم على الظهور: نهاية = بداية (عشان المشغل يزود بس)
-            target_shift.fuel_end = target_shift.fuel_start + target_shift.fuel_received
-            target_shift.main_engine_end = target_shift.main_engine_start
-            target_shift.aux_engine_end = target_shift.aux_engine_start
 
-            target_shift.save()
-            return redirect(f'/admin/core/workshift/{target_shift.id}/change/')
         else:
             # لو مفيش وردية مفتوحة (طوارئ)
             new_s = WorkShift.objects.create(
@@ -191,10 +202,24 @@ def quick_action(request, dredger_id, action_type):
 
     return redirect('home')
 
-# --- 4. أرشيف التقارير (الدوال التي كانت مفقودة) ---
+@login_required
 def reports_list(request):
-    reports = DailyProjectReport.objects.all().order_by('-date_started')
-    return render(request, 'core/reports_list.html', {'reports': reports})
+    # 1. التقارير اليومية للكراكات
+    dredger_reports = DailyProjectReport.objects.all().order_by('-date_started')
+    
+    # 2. تقارير الـ Pipe Fighter (تم تعديل حقل الترتيب هنا)
+    pipe_ops = PipeFighterOperations.objects.all().order_by('-date')
+    
+    # 3. تقارير السولار
+    dredgers = Dredger.objects.all()
+
+    context = {
+        'dredger_reports': dredger_reports,
+        'pipe_ops': pipe_ops,
+        'dredgers': dredgers,
+    }
+    return render(request, 'core/reports_list.html', context)
+
 
 def report_detail(request, report_id):
     report = get_object_or_404(DailyProjectReport, id=report_id)
@@ -398,3 +423,10 @@ def fuel_report(request, dredger_id):
         'stock_remaining': stock_remaining,
     }
     return render(request, 'core/fuel_report.html', context)
+
+def error_403(request, exception):
+    return render(request, '403.html', status=403)
+
+def error_404(request, exception):
+    # يمكنك استخدام نفس التصميم مع تغيير بسيط في الرسالة
+    return render(request, '403.html', status=404)

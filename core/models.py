@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import time, timedelta
-
+from django.core.exceptions import ValidationError
+import pytz
 # 1. دليل الموظفين
 class Staff(models.Model):
     GROUP_CHOICES = [('A', 'مجموعة A'), ('B', 'مجموعة B')]
@@ -76,7 +77,24 @@ class WorkShift(models.Model):
 
     # ... باقي الحقول كما هي ...
 
-
+    def clean(self):
+        super().clean()
+        if self.start_time and self.end_time:
+            # توقيت القاهرة الفاصل لليوم
+            cairo_tz = pytz.timezone('Africa/Cairo')
+            start_local = self.start_time.astimezone(cairo_tz)
+            end_local = self.end_time.astimezone(cairo_tz)
+            
+            # تحديد 12 ظهراً الخاصة بيوم البدء
+            limit_noon = start_local.replace(hour=12, minute=0, second=0, microsecond=0)
+            
+            # إذا بدأت قبل الظهر وحاول ينهي بعد الظهر في نفس السجل
+            if start_local < limit_noon and end_local > limit_noon:
+                raise ValidationError(
+                    "خطأ فني: لا يمكن للسجل تخطي الساعة 12:00 ظهراً. "
+                    "من فضلك اجعل وقت النهاية 12:00 تماماً لهذا السجل، "
+                    "ثم افتح سجلاً جديداً لما بعد الساعة 12."
+                )
     report_24h = models.ForeignKey(DailyProjectReport, on_delete=models.CASCADE, related_name='shifts', null=True, blank=True, verbose_name="اليوم المرتبط")
     operator = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, verbose_name="المشغل")
     shift_time = models.CharField(max_length=10, choices=SHIFT_TYPE, verbose_name="فترة الوردية", null=True, blank=True)
@@ -121,6 +139,7 @@ class WorkShift(models.Model):
 
     def __str__(self):
         return f"{self.operator if self.operator else 'بدون اسم'} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+    
     
     # داخل كلاس WorkShift في models.py
     # --- حقول السولار الجديدة ---

@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-8ria@l-sko5%vs9)xpd028vys&0#+ud2uf&lo##kci1t5b6ai^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['khello22.pythonanywhere.com']
+ALLOWED_HOSTS = ['khello22.pythonanywhere.com','127.0.0.1','localhost']
 
 
 # Application definition
@@ -117,10 +117,15 @@ USE_TZ = True # اتركها True ولكن الـ views هي من ستحول ا�
 import os
 # انزل لإعدادات الـ Static وضع هذه الأسطر:
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = []
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# إعدادات التوجيه والصفحات المخصصة
+LOGIN_URL = '/accounts/login/'  # لكي يعرف النظام أين يذهب غير المسجلين
+LOGIN_REDIRECT_URL = '/'       # التوجيه للرئيسية بعد الدخول
+LOGOUT_REDIRECT_URL = '/accounts/login/' # التوجيه لصفحتك بعد الخروج

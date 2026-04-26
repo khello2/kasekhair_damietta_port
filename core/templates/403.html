@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>دخول غير مصرح به | قاصد خير</title>
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; }
+        .error-card { max-width: 500px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--gold); }
+        .icon-box { font-size: 80px; color: #e74c3c; margin-bottom: 20px; }
+        .btn-home { background: var(--navy); color: white; border-radius: 30px; padding: 12px 30px; font-weight: bold; transition: 0.3s; text-decoration: none; display: inline-block; }
+        .btn-home:hover { background: var(--gold); color: var(--navy); transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+<div class="error-card">
+    <div class="icon-box">
+        <i class="fas fa-user-shield"></i>
+    </div>
+    <h2 class="fw-bold text-navy mb-3">وصول غير مصرح به!</h2>
+    <p class="text-muted mb-4">عذراً، حسابك لا يملك الصلاحيات الكافية للدخول إلى هذه الصفحة. هذه المنطقة مخصصة للإدارة أو المكتب الفني فقط.</p>
+    
+    <div class="alert alert-warning py-2 small mb-4">
+        <i class="fas fa-info-circle me-1"></i> تم تسجيل محاولة الدخول وتنبيه المسؤول.
+    </div>
+
+    <a href="{% url 'home' %}" class="btn-home shadow">
+        <i class="fas fa-home me-2"></i> العودة للصفحة الرئيسية
+    </a>
+    
+    <div class="mt-4">
+        <img src="{% static 'images/logo.png' %}" width="100" alt="Logo" style="opacity: 0.5;">
+    </div>
+</div>
+
+</body>
+</html>

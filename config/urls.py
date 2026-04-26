@@ -20,8 +20,12 @@ from core import views
 # أضف هذه الاستيرادات في الأعلى
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views  # أضف هذا السطر
+
 
 urlpatterns = [
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('analytics/', views.analytics_view, name='analytics'),
@@ -31,6 +35,9 @@ urlpatterns = [
     path('fuel/<int:dredger_id>/', views.fuel_report, name='fuel_report'),
 
 ] 
+# في ملف urls.py الأساسي
+handler403 = 'core.views.error_403'
+handler404 = 'core.views.error_404' # اختياري لو حابب تخصص صفحة للروابط الغلط
 
 # أضف هذا السطر في نهاية الملف تماماً خارج القائمة
 if settings.DEBUG:
