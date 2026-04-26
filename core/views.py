@@ -12,25 +12,29 @@ def auto_close_old_reports():
     cairo_tz = pytz.timezone('Africa/Cairo')
     now_local = now.astimezone(cairo_tz)
     today_noon = now_local.replace(hour=12, minute=0, second=0, microsecond=0)
-    
+
     if now_local >= today_noon:
         DailyProjectReport.objects.filter(date_started__lt=now_local.date(), is_closed=False).update(is_closed=True)
     else:
         DailyProjectReport.objects.filter(date_started__lt=now_local.date() - timedelta(days=1), is_closed=False).update(is_closed=True)
 
-# --- 2. الصفحة الرئيسية ---
 def home(request):
     auto_close_old_reports()
     dredgers = Dredger.objects.all()
     dredger_status_list = []
-    
+
     cairo_tz = pytz.timezone('Africa/Cairo')
     now_local = timezone.now().astimezone(cairo_tz)
     today_date = now_local.date()
-    
+
     current_rotation = WeeklyRotation.objects.order_by('-start_date').first()
     active_group = current_rotation.active_group if current_rotation else None
-    staff_member = Staff.objects.filter(user=request.user).first()
+
+    # --- التعديل: التحقق من هوية المستخدم قبل الاستعلام عن Staff ---
+    staff_member = None
+    if request.user.is_authenticated:
+        staff_member = Staff.objects.filter(user=request.user).first()
+
     news = NewsTicker.objects.filter(is_active=True).order_by('-created_at')
 
     for d in dredgers:
@@ -46,18 +50,25 @@ def home(request):
             is_handed_over = False
             current_active_operator = last_shift.operator
 
-        is_owner = (staff_member == current_active_operator)
-        can_view = (request.user.is_superuser or (staff_member and staff_member.team_type == 'dredger') or (request.user in d.allowed_operators.all()))
-        
-        can_add = False
-        if request.user.is_superuser: can_add = True
-        elif staff_member and can_view and staff_member.group == active_group:
-            if is_handed_over or is_owner: can_add = True
+        # منطق الحماية: إذا لم يكن مسجل دخول، هذه القيم دائماً False
+        is_owner = (staff_member == current_active_operator) if staff_member else False
 
-                # داخل حلقة for d in dredgers في دالة home
+        can_view = False
+        can_add = False
+
+        if request.user.is_authenticated:
+            # منطق الصلاحيات للمستخدمين المسجلين فقط
+            can_view = (request.user.is_superuser or (staff_member and staff_member.team_type == 'dredger') or (request.user in d.allowed_operators.all()))
+
+            if request.user.is_superuser:
+                can_add = True
+            elif staff_member and can_view and staff_member.group == active_group:
+                if is_handed_over or is_owner:
+                    can_add = True
+
         dredger_status_list.append({
-            'object': d,           # هام جداً للروابط
-            'id': d.id,            # كخطة بديلة
+            'object': d,
+            'id': d.id,
             'name': d.name,
             'can_view': can_view,
             'can_add': can_add,
@@ -68,13 +79,11 @@ def home(request):
             'op_name': op_name,
             'op_phone': op_phone,
             'vessel_phone': d.vessel_phone,
-            # بيانات السولار السريعة للعرض (لو احتجتها في الـ index)
             'fuel_info': {
                 'stock': round(d.stock_fuel - (WorkShift.objects.filter(report_24h__dredger=d).aggregate(Sum('fuel_added'))['fuel_added__sum'] or 0), 2),
                 'net': round((WorkShift.objects.filter(report_24h__dredger=d).aggregate(Sum('fuel_added'))['fuel_added__sum'] or 0) - (WorkShift.objects.filter(report_24h__dredger=d).aggregate(Sum('fuel_usage'))['fuel_usage__sum'] or 0), 2),
             }
         })
-
 
     production_data, labels = [], []
     for i in range(6, -1, -1):
@@ -88,18 +97,19 @@ def home(request):
         'labels': labels, 'production_data': production_data
     })
 
+
 def quick_action(request, dredger_id, action_type):
     if not request.user.is_authenticated: return redirect('/admin/login/')
-    
+
     dredger = get_object_or_404(Dredger, id=dredger_id)
     staff = Staff.objects.filter(user=request.user).first()
     cairo_tz = pytz.timezone('Africa/Cairo')
     now = timezone.now()
     now_local = now.astimezone(cairo_tz)
-    
+
     report_date = now_local.date()
     if now_local.time() < time(12, 0): report_date -= timedelta(days=1)
-    
+
     # جلب أحدث سجل للكراكة لتوريث القراءات
     prev = WorkShift.objects.filter(report_24h__dredger=dredger).order_by('-id').first()
     last_open = WorkShift.objects.filter(report_24h__dredger=dredger, end_time__isnull=True).last()
@@ -114,7 +124,7 @@ def quick_action(request, dredger_id, action_type):
             last_open.fuel_end = last_open.fuel_start + last_open.fuel_received
             last_open.main_engine_end = last_open.main_engine_start
             last_open.save()
-            
+
             messages.warning(request, "Shift split at 12:00 PM. Please update morning production/fuel.")
             report_today, _ = DailyProjectReport.objects.get_or_create(dredger=dredger, date_started=report_date)
             last_open = WorkShift.objects.create(
@@ -129,7 +139,7 @@ def quick_action(request, dredger_id, action_type):
         if last_open:
             last_open.end_time = now
             last_open.save()
-        
+
         # إنشاء سجل "تشغيل" جديد مع سحب قراءات العدادات من آخر سجل مغلق
         new_s = WorkShift.objects.create(
             report_24h=report, operator=staff, status='active', start_time=now,
@@ -147,7 +157,7 @@ def quick_action(request, dredger_id, action_type):
 
     elif action_type == 'stop':
         target_shift = last_open if (last_open and last_open.operator == staff) else None
-        
+
         if target_shift:
             target_shift.status = 'breakdown'
             target_shift.end_time = now
@@ -155,7 +165,7 @@ def quick_action(request, dredger_id, action_type):
             target_shift.fuel_end = target_shift.fuel_start + target_shift.fuel_received
             target_shift.main_engine_end = target_shift.main_engine_start
             target_shift.aux_engine_end = target_shift.aux_engine_start
-            
+
             target_shift.save()
             return redirect(f'/admin/core/workshift/{target_shift.id}/change/')
         else:
@@ -178,7 +188,7 @@ def quick_action(request, dredger_id, action_type):
             last_open.end_time = now
             last_open.save()
             return redirect(f'/admin/core/workshift/{last_open.id}/change/?dredger_id={dredger_id}')
-            
+
     return redirect('home')
 
 # --- 4. أرشيف التقارير (الدوال التي كانت مفقودة) ---
@@ -192,7 +202,7 @@ def report_detail(request, report_id):
     shifts = report.shifts.all().order_by('start_time')
     cairo_tz = pytz.timezone('Africa/Cairo')
     now = timezone.now()
-    
+
     def to_hhmm(decimal_hours):
         if not decimal_hours or decimal_hours < 0: return "00:00"
         total_mins = int(round(decimal_hours * 60))
@@ -201,7 +211,7 @@ def report_detail(request, report_id):
 
     unique_operators, timeline_events, stop_summary_dict, shifts_data = [], [], {}, []
     total_work_dec, total_stop_dec = 0, 0
-    
+
     # متغيرات التجميع لليوم
     day_fuel_usage = 0
     day_main_engine_h = 0
@@ -211,13 +221,13 @@ def report_detail(request, report_id):
         current_ev = None
         for s in shifts:
             # 1. جمع الأسماء الفريدة
-            if s.operator and s.operator.name not in unique_operators: 
+            if s.operator and s.operator.name not in unique_operators:
                 unique_operators.append(s.operator.name)
-            
+
             # 2. تحديد نهاية الفترة للحساب اللحظي
             eff_end = s.end_time if s.end_time else now
             duration = (eff_end - s.start_time).total_seconds() / 3600 if s.start_time else 0
-            
+
             # 3. تصنيف الحالة وجمع الساعات والاستهلاك
             is_active = (s.status == 'active')
             if is_active:
@@ -226,7 +236,7 @@ def report_detail(request, report_id):
                 total_stop_dec += duration
                 lbl = s.get_status_display()
                 stop_summary_dict[lbl] = stop_summary_dict.get(lbl, 0) + duration
-            
+
             # تجميع بيانات المحركات والسولار المحسوبة في الموديل
             day_fuel_usage += (s.fuel_usage or 0)
             day_main_engine_h += (s.main_engine_hours or 0)
@@ -234,11 +244,11 @@ def report_detail(request, report_id):
 
             # 4. تجهيز بيانات الجدول السفلي
             shifts_data.append({
-                'obj': s, 
-                'work_h': to_hhmm(duration) if is_active else "00:00", 
+                'obj': s,
+                'work_h': to_hhmm(duration) if is_active else "00:00",
                 'stop_h': to_hhmm(duration) if not is_active else "00:00"
             })
-            
+
             # 5. منطق دمج التايم لاين
             if current_ev is None:
                 current_ev = {'status': s.status, 'start': s.start_time, 'end': eff_end, 'reason': s.stop_reason or "", 'is_open': not s.end_time}
@@ -246,13 +256,13 @@ def report_detail(request, report_id):
                 if s.status == current_ev['status']:
                     current_ev['end'] = eff_end
                     current_ev['is_open'] = not s.end_time
-                    if s.stop_reason and s.stop_reason not in current_ev['reason']: 
+                    if s.stop_reason and s.stop_reason not in current_ev['reason']:
                         current_ev['reason'] += f" | {s.stop_reason}"
                 else:
                     timeline_events.append(current_ev)
                     current_ev = {'status': s.status, 'start': s.start_time, 'end': eff_end, 'reason': s.stop_reason or "", 'is_open': not s.end_time}
-        
-        if current_ev: 
+
+        if current_ev:
             timeline_events.append(current_ev)
 
     # 6. تجهيز التايم لاين النهائي للعرض
@@ -262,7 +272,7 @@ def report_detail(request, report_id):
         en_l = ev['end'].astimezone(cairo_tz)
         d_h = (ev['end'] - ev['start']).total_seconds() / 3600
         disp = dict(WorkShift.STATUS_CHOICES).get(ev['status'], ev['status'])
-        
+
         final_timeline.append({
             'time_range': f"{st_l.strftime('%H:%M')} - {en_l.strftime('%H:%M') if not ev['is_open'] else 'الآن'}",
             'description': "في الخدمة (تكريك فعلي)" if ev['status'] == 'active' else f"{disp} : {ev['reason']}" if ev['reason'] else disp,
@@ -273,7 +283,7 @@ def report_detail(request, report_id):
     # 7. حساب بيانات كروت المحركات (البداية والنهاية والصافي)
     first_s = shifts.first()
     last_s = shifts.last()
-    
+
     main_engine_data = {
         'start': first_s.main_engine_start if first_s else 0,
         'end': last_s.main_engine_end if (last_s and last_s.main_engine_end > 0) else (last_s.main_engine_start if last_s else 0),
@@ -330,16 +340,16 @@ def analytics_view(request):
 
     for d in dredgers:
         shifts = WorkShift.objects.filter(report_24h__dredger=d)
-        
+
         # 1. إجمالي المستهلك (منذ بداية المشروع)
         total_consumed = shifts.aggregate(Sum('fuel_usage'))['fuel_usage__sum'] or 0
-        
+
         # 2. إجمالي المضاف للكراكة (التموين)
         total_added = shifts.aggregate(Sum('fuel_added'))['fuel_added__sum'] or 0
-        
+
         # 3. الصافي الموجود في الكراكة (المضاف - المستهلك)
         current_in_vessel = total_added - total_consumed
-        
+
         # 4. الكمية في الاستوك (الموجود في المخزن - المضاف للكراكات)
         # ملاحظة: يتم تحديث stock_fuel يدوياً من الأدمين عند شراء سولار جديد
         current_stock = d.stock_fuel - total_added
