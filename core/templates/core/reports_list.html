@@ -10,9 +10,9 @@
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; }
         body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        
+
         .header-section { background: var(--navy); color: white; padding: 40px 0; border-bottom: 5px solid var(--gold); }
-        
+
         /* تحسين وضوح زر العودة للرئيسية */
         .btn-back-home {
             border: 2px solid var(--gold) !important;
@@ -98,7 +98,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for report in dredger_reports %}
+                        {% for report in reports %}
                         <tr>
                             <td class="fw-bold">{{ report.date_started|date:"d-m-Y" }}</td>
                             <td><span class="badge bg-light text-navy border fs-6">{{ report.dredger.name }}</span></td>
@@ -141,9 +141,9 @@
                             <td>{{ op.get_shift_display }}</td>
                             <td class="fw-bold text-navy">{{ op.operator_in_charge.name }}</td>
                             <td>
-                                <a href="/admin/core/pipefighteroperations/{{ op.id }}/change/" class="btn btn-sm btn-outline-dark fw-bold">
-                                    <i class="fas fa-search me-1"></i> فتح السجل
-                                </a>
+                            <a href="{% url 'pipe_report_detail' op.id %}" class="btn-view-custom">
+                                <i class="fas fa-file-invoice me-1"></i> عرض تقرير العمليات
+                            </a>
                             </td>
                         </tr>
                         {% endfor %}

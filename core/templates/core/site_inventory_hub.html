@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف جرد مخزن البر | قاصد خير</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f8f9fa; }
+        
+        /* الهيدر الرسمي للطباعة */
+        .print-header { display: none; align-items: center; border-bottom: 3px solid var(--navy); padding-bottom: 15px; margin-bottom: 20px; }
+        
+        .report-wrapper { max-width: 1000px; margin: 30px auto; background: white; padding: 40px; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; }
+        
+        .cat-title { background: var(--navy); color: var(--gold); padding: 10px 20px; margin: 25px 0 10px 0; border-radius: 8px; font-weight: bold; font-size: 1.1rem; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid #999; padding: 12px; text-align: center; }
+        th { background-color: #f0f0f0; color: var(--navy); font-weight: 800; }
+        td { font-weight: 600; }
+
+        .footer-sig { display: none; margin-top: 50px; grid-template-columns: 1fr 1fr 1fr; text-align: center; }
+        .sig-box { padding-top: 40px; border-top: 1px solid #000; width: 140px; margin: auto; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .report-wrapper { box-shadow: none; border: none; width: 100%; max-width: 100%; margin: 0; padding: 10px; }
+            .print-header { display: flex !important; justify-content: space-between; }
+            .footer-sig { display: grid !important; }
+            .cat-title { border: 1px solid var(--navy); -webkit-print-color-adjust: exact; }
+            table th { -webkit-print-color-adjust: exact; background-color: #eee !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print mt-4 d-flex justify-content-between">
+    <a href="/" class="btn btn-dark"><i class="fas fa-home"></i> الرئيسية</a>
+    <button onclick="window.print()" class="btn btn-warning fw-bold px-4 shadow">
+        <i class="fas fa-print me-1"></i> تـنـفـيذ أمـر الـطـبـاعـة
+    </button>
+</div>
+
+<div class="report-wrapper">
+    <!-- هيدر الطباعة -->
+    <div class="print-header">
+        <div style="width: 25%;"><img src="{% static 'images/logo.png' %}" height="70"></div>
+        <div style="text-align: center; width: 50%;">
+            <h2 style="color: var(--navy); font-weight: 900; margin: 0;">شركة قاصد خير للمقاولات</h2>
+            <h4 style="margin-top: 5px; border-bottom: 2px solid var(--gold); display: inline-block;">بيان أرصدة مخزن البر (الموقع)</h4>
+        </div>
+        <div style="width: 25%; text-align: left; font-size: 12px;">
+            تاريخ الاستخراج:<br><b>{{ date|date:"d/m/Y H:i" }}</b>
+        </div>
+    </div>
+
+    <!-- العرض بنظام الجداول حسب الأقسام -->
+    {% for category, items in categorized_items.items %}
+    <div class="cat-title">القسم: {{ category }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">م</th>
+                <th style="width: 62%; text-align: right; padding-right: 20px;">اسم الصنف والمهمة</th>
+                <th style="width: 30%;">الرصيد الحالي بالمخزن</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td style="text-align: right; padding-right: 20px;">{{ item.name }}</td>
+                <td style="font-size: 1.2rem; font-weight: 900; color: var(--navy);">{{ item.quantity|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% empty %}
+    <div class="alert alert-info text-center">لا توجد بيانات مسجلة حالياً في مخزن البر.</div>
+    {% endfor %}
+
+    <!-- توقيعات الطباعة -->
+    <div class="footer-sig">
+        <div><p>أمين المخزن</p><div class="sig-box"></div></div>
+        <div><p>المكتب الفني</p><div class="sig-box"></div></div>
+        <div><p>مدير المشروع</p><div class="sig-box"></div></div>
+    </div>
+</div>
+
+<footer class="text-center py-4 no-print text-muted small">
+    جميع الحقوق محفوظة - شركة قاصد خير للمقاولات &copy; 2026
+</footer>
+
+</body>
+</html>

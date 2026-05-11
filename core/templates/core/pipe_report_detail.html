@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير بايب فايتر - {{ report.date }}</title>
+
+    <link href="https://cloudflare.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        .report-paper {
+            background: white; max-width: 1000px; margin: 20px auto;
+            padding: 40px; border: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header-title { color: var(--navy); font-weight: 900; font-size: 1.6rem; border-bottom: 3px double var(--navy); padding-bottom: 10px; }
+
+        .section-box { border: 1px solid #999; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .section-header { background: var(--navy); color: var(--gold); padding: 8px 15px; font-weight: bold; font-size: 0.95rem; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+        .stat-item { text-align: center; border-left: 1px solid #eee; }
+        .stat-item:last-child { border-left: none; }
+        .stat-val { display: block; font-weight: 800; font-size: 1.2rem; color: var(--navy); }
+        .stat-lbl { font-size: 0.75rem; color: #666; font-weight: bold; }
+
+        .table-custom { width: 100%; margin-bottom: 0; border-collapse: collapse; }
+        .table-custom th { background: #f0f0f0; border: 1px solid #999; padding: 8px; font-size: 0.85rem; text-align: center; }
+        .table-custom td { border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; }
+
+        .work-description-box { padding: 15px; font-size: 0.95rem; line-height: 1.6; background: #fff; white-space: pre-line; border-top: 1px solid #eee; }
+
+        .badge-info-custom { background: #eef2f7; color: var(--navy); border: 1px solid #d1d9e0; padding: 5px 20px; border-radius: 20px; font-size: 0.9rem; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .report-paper { margin: 0; border: none; width: 100% !important; padding: 10px; }
+            .section-box { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print mt-3 d-flex justify-content-between">
+    <a href="{% url 'reports_list' %}" class="btn btn-dark btn-sm"><i class="fas fa-arrow-right me-1"></i> الأرشيف</a>
+    <button onclick="window.print()" class="btn btn-warning fw-bold px-4"><i class="fas fa-print me-1"></i> طـبـاعـة</button>
+</div>
+
+<div class="report-paper shadow-lg">
+    <!-- 1. الترويسة الرسمية -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="header-title mb-0">شركة قاصد خير للمقاولات</h2>
+            <div class="fw-bold text-primary mt-1"><i class="fas fa-tools me-2"></i>تقرير فني صيانة خطوط الطرد</div>
+        </div>
+        <img src="{% static 'images/logo.png' %}" width="100" alt="Logo">
+    </div>
+
+    <!-- 2. بيانات الوردية -->
+    <div class="row mb-4 text-center">
+        <div class="col-4"><div class="badge-info-custom">التاريخ: <b>{{ report.date|date:"d-m-Y" }}</b></div></div>
+        <div class="col-4"><div class="badge-info-custom">الوردية: <b>{{ report.get_shift_display }}</b></div></div>
+        <div class="col-4"><div class="badge-info-custom">المسؤول: <b>{{ report.operator_in_charge.name }}</b></div></div>
+    </div>
+
+    <!-- 3. إحصائيات الخط بالخدمة -->
+    <div class="section-box">
+        <div class="section-header">1- حالة خط الردم الحالي (إجمالي الطول: {{ report.total_line_length }} متر)</div>
+        <div class="stat-grid">
+            <div class="stat-item"><span class="stat-lbl">مواسير عائمة</span><span class="stat-val text-primary">{{ report.float_pipes }}</span></div>
+            <div class="stat-item"><span class="stat-lbl">ربرات عائمة</span><span class="stat-val text-primary">{{ report.float_rubbers }}</span></div>
+            <div class="stat-item"><span class="stat-lbl">طول العائم</span><span class="stat-val text-danger">{{ report.float_length }} م</span></div>
+
+            <div class="stat-item border-top pt-2"><span class="stat-lbl">مواسير أرضية</span><span class="stat-val text-success">{{ report.land_pipes }}</span></div>
+            <div class="stat-item border-top pt-2"><span class="stat-lbl">ربرات أرضية</span><span class="stat-val text-success">{{ report.land_rubbers }}</span></div>
+            <div class="stat-item border-top pt-2"><span class="stat-lbl">طول الأرضي</span><span class="stat-val text-danger">{{ report.land_length }} م</span></div>
+        </div>
+    </div>
+
+    <!-- 4. جرد الاستوك والمخزن العام -->
+    <div class="section-box">
+        <div class="section-header">2- جرد الاستوك والمخزن (خارج الخدمة)</div>
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>جديد</th>
+                    <th>مستعمل صالح</th>
+                    <th>هالك / خردة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="bg-light">المواسير</td>
+                    <td>{{ report.stock_pipes_new }}</td>
+                    <td>{{ report.stock_pipes_used }}</td>
+                    <td class="text-danger">{{ report.stock_pipes_scrap }}</td>
+                </tr>
+                <tr>
+                    <td class="bg-light">الربرات</td>
+                    <td>{{ report.stock_rubbers_new }}</td>
+                    <td>{{ report.stock_rubbers_used }}</td>
+                    <td class="text-danger">{{ report.stock_rubbers_scrap }}</td>
+                </tr>
+                <tr>
+                    <td class="bg-light">الطوافات</td>
+                    <td>{{ report.stock_pontoons_new }}</td>
+                    <td>{{ report.stock_pontoons_used }}</td>
+                    <td class="text-danger">{{ report.stock_pontoons_scrap }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 5. المهمات والأدوات + الأصناف الإضافية -->
+    <div class="row g-2 mb-3">
+        <div class="col-8">
+            <div class="section-box h-100">
+                <div class="section-header">3- جرد المهمات والأدوات</div>
+                <table class="table-custom">
+                    <tr>
+                        <th>مسامير 30</th><td>{{ report.bolts_30 }}</td>
+                        <th>مفتاح 30</th><td>{{ report.wrench_30 }}</td>
+                        <th>لقمة 30</th><td>{{ report.socket_30 }}</td>
+                    </tr>
+                    <tr>
+                        <th>مسامير 27</th><td>{{ report.bolts_27 }}</td>
+                        <th>مفتاح 27</th><td>{{ report.wrench_27 }}</td>
+                        <th>لقمة 27</th><td>{{ report.socket_27 }}</td>
+                    </tr>
+                    <tr>
+                        <th>ايرجن</th><td colspan="5">{{ report.air_gun }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="section-box h-100">
+                <div class="section-header">4- أصناف إضافية</div>
+                <div class="p-2 small">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 6. بيان الأعمال (تكملة الكود الناقص) -->
+    <div class="section-box">
+        <div class="section-header">5- بيان الأعمال اليومية والملاحظات</div>
+        <div class="work-description-box">
+            {{ report.work_description|default:"لا توجد ملاحظات مسجلة لهذه الوردية." }}
+        </div>
+    </div>
+
+
+
+    <!-- التوقيعات الرسمية في نهاية الورقة -->
+    <div class="mt-5 d-flex justify-content-around text-center fw-bold" style="border-top: 2px solid #eee; pt-4;">
+        <div>
+            <p>توقيع فني الخط</p>
+            <br>
+            <p>...........................</p>
+        </div>
+        <div>
+            <p>مدير الموقع</p>
+            <br>
+            <p>...........................</p>
+        </div>
+        <div>
+            <p>اعتماد الإدارة</p>
+            <br>
+            <p>...........................</p>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center py-4 no-print text-muted small">
+    نظام إدارة المشاريع - شركة قاصد خير للمقاولات &copy; 2026
+</footer>
+
+</body>
+</html>

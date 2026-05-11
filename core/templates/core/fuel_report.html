@@ -1,88 +1,188 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Fuel Monitoring - {{ dredger.name }}</title>
-    <link rel="stylesheet" href="https://jsdelivr.net">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز مراقبة السولار | قاصد خير</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
-        :root { --navy: #1a2a3a; --gold: #d4af37; }
-        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .fuel-card { border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .header-bg { background: var(--navy); color: white; padding: 40px 0; border-bottom: 5px solid var(--gold); }
+        :root { --navy: #1a2a3a; --gold: #d4af37; --light-bg: #f0f2f5; }
+        body { background-color: var(--light-bg); font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; }
+        
+        /* الهيدر الاحترافي */
+        .dashboard-header { 
+            background: linear-gradient(135deg, var(--navy) 0%, #2c3e50 100%); 
+            color: white; padding: 20px 0; border-bottom: 5px solid var(--gold); 
+            margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* كروت العدادات */
+        .stat-card {
+            border: none; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; height: 100%;
+        }
+        .stat-card:hover { transform: translateY(-10px); }
+        .card-marine { border-right: 8px solid #007bff; }
+        .card-land { border-right: 8px solid var(--gold); }
+        
+        .icon-box {
+            width: 60px; height: 60px; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .val-large { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
+        .unit { font-size: 1rem; color: #888; font-weight: normal; margin-right: 5px; }
+
+        /* الجدول */
+        .table-container { 
+            background: white; border-radius: 20px; padding: 25px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        }
+        .table thead { background-color: #f8f9fa; border-radius: 10px; }
+        .table th { border: none; color: var(--navy); text-transform: uppercase; font-size: 0.85rem; padding: 15px; }
+        .badge-in { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-out { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .stat-card { border: 1px solid #ddd !important; box-shadow: none !important; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header-bg text-center mb-5">
-        <div class="container">
-            <h1><i class="fas fa-gas-pump me-3 text-gold"></i>Fuel Management System</h1>
-            <p class="lead">Vessel: <strong>{{ dredger.name }}</strong></p>
-            <a href="{% url 'home' %}" class="btn btn-outline-light btn-sm mt-3"><i class="fas fa-arrow-left me-1"></i> Back to Radar</a>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- 4 Summary Boxes -->
-        <div class="row g-4 mb-5 text-center">
-            <div class="col-md-3">
-                <div class="card fuel-card p-3 bg-info text-white">
-                    <small>STOCK REMAINING</small>
-                    <h3 class="fw-bold">{{ stock_remaining }} L</h3>
+<!-- الهيدر -->
+<header class="dashboard-header no-print">
+    <div class="container-fluid px-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'images/logo.png' %}" height="70" class="me-3 bg-white p-2 rounded-circle" alt="Logo">
+                <div>
+                    <h2 class="mb-0 fw-bold">غرفة عمليات مراقبة السولار</h2>
+                    <p class="mb-0 text-white-50">مشروع ميناء دمياط - شركة قاصد خير للمقاولات</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card fuel-card p-3 bg-success text-white">
-                    <small>TOTAL SUPPLIED</small>
-                    <h3 class="fw-bold">{{ total_added }} L</h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card fuel-card p-3 bg-danger text-white">
-                    <small>TOTAL CONSUMED</small>
-                    <h3 class="fw-bold">{{ total_consumed }} L</h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card fuel-card p-3 bg-dark text-warning border border-warning">
-                    <small>CURRENT NET (IN VESSEL)</small>
-                    <h3 class="fw-bold">{{ in_vessel }} L</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- History Table -->
-        <div class="card fuel-card shadow-lg">
-            <div class="card-header bg-white fw-bold"><i class="fas fa-history me-2"></i>Fuel Transaction History</div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Date/Time</th>
-                            <th>Operator</th>
-                            <th>Supplied (+)</th>
-                            <th>Consumed (-)</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records %}
-                        <tr>
-                            <td>{{ record.start_time|date:"d M Y - H:i" }}</td>
-                            <td>{{ record.operator.name }}</td>
-                            <td class="text-success fw-bold">{% if record.fuel_added > 0 %}+{{ record.fuel_added }}{% else %}-{% endif %}</td>
-                            <td class="text-danger fw-bold">{% if record.fuel_usage > 0 %}-{{ record.fuel_usage }}{% else %}-{% endif %}</td>
-                            <td><span class="badge bg-light text-dark">{{ record.get_status_display }}</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center py-4">No fuel records found for this vessel.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="text-start">
+                <a href="/" class="btn btn-outline-light rounded-pill px-4 me-2"><i class="fas fa-home me-1"></i> الرئيسية</a>
+                <button onclick="window.print()" class="btn btn-gold rounded-pill px-4" style="background: var(--gold); color: var(--navy); font-weight: bold;">
+                    <i class="fas fa-print me-1"></i> طباعة الميزان
+                </button>
             </div>
         </div>
     </div>
+</header>
+
+<div class="container-fluid px-5">
+    <div class="row g-4 mb-5">
+        <!-- قسم البحر -->
+        <div class="col-md-6">
+            <div class="stat-card card-marine bg-white p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary"><i class="fas fa-ship"></i></div>
+                    <span class="badge bg-primary rounded-pill">قطاع التكريك (البحر)</span>
+                </div>
+                <h6 class="text-muted fw-bold">رصيد عهدة المالتي كات حالياً</h6>
+                <div class="val-large text-navy">{{ multicat_balance|floatformat:0 }}<span class="unit">لتر</span></div>
+                
+                <div class="row mt-4 pt-3 border-top">
+                    <div class="col-6">
+                        <small class="text-muted d-block">إجمالي الوارد (عربات)</small>
+                        <span class="fw-bold text-success">+ {{ marine_in|floatformat:0 }}</span>
+                    </div>
+                    <div class="col-6 border-start">
+                        <small class="text-muted d-block">المنصرف للكراكات</small>
+                        <span class="fw-bold text-danger">- {{ marine_out|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم البر -->
+        <div class="col-md-6">
+            <div class="stat-card card-land bg-white p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="fas fa-warehouse"></i></div>
+                    <span class="badge bg-warning text-dark rounded-pill">قطاع الموقع (البر)</span>
+                </div>
+                <h6 class="text-muted fw-bold">رصيد خزان الإدارة حالياً</h6>
+                <div class="val-large text-navy">{{ admin_tank_balance|floatformat:0 }}<span class="unit">لتر</span></div>
+                
+                <div class="row mt-4 pt-3 border-top">
+                    <div class="col-6">
+                        <small class="text-muted d-block">إجمالي الوارد (عربات)</small>
+                        <span class="fw-bold text-success">+ {{ admin_in|floatformat:0 }}</span>
+                    </div>
+                    <div class="col-6 border-start">
+                        <small class="text-muted d-block">المنصرف للمعدات</small>
+                        <span class="fw-bold text-danger">- {{ admin_out|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول الحركات -->
+    <div class="table-container mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0 text-navy"><i class="fas fa-exchange-alt me-2 text-gold"></i> بيان آخر حركات صرف وتوريد السولار</h5>
+            <span class="text-muted small">تحديث تلقائي: {% now "H:i" %}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>التاريخ والوقت</th>
+                        <th>الحركة</th>
+                        <th>المصدر</th>
+                        <th>الجهة المستلمة</th>
+                        <th>الكمية</th>
+                        <th class="no-print">الملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movements %}
+                    <tr>
+                        <td class="text-muted">{{ m.date|date:"d M Y | H:i" }}</td>
+                        <td>
+                            <span class="badge {% if m.move_type == 'in' %}badge-in{% else %}badge-out{% endif %} rounded-pill px-3 py-2">
+                                {{ m.get_move_type_display }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-secondary">{{ m.get_source_display }}</td>
+                        <td>
+                            {% if m.destination_dredger %}
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-navy text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width:30px; height:30px; font-size:0.7rem;">
+                                        <i class="fas fa-ship"></i>
+                                    </div>
+                                    <span class="fw-bold">{{ m.destination_dredger.name }}</span>
+                                </div>
+                            {% elif m.destination_equipment %}
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width:30px; height:30px; font-size:0.7rem;">
+                                        <i class="fas fa-truck-pickup"></i>
+                                    </div>
+                                    <span>{{ m.destination_equipment.name }}</span>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold fs-5 text-navy">{{ m.amount|floatformat:0 }} <small class="text-muted" style="font-size:0.6rem">LTR</small></td>
+                        <td class="small text-muted no-print">{{ m.notes|default:"---" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center py-4 text-muted small no-print">
+    نظام إدارة مشروع ميناء دمياط المتكامل &copy; 2026
+</footer>
 
 </body>
 </html>

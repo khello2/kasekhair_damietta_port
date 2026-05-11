@@ -1,115 +1,169 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPI Analytics | Kased Khair</title>
-    
-    <!-- روابط المكتبات الكاملة لضمان التشغيل -->
-    <link rel="stylesheet" href="https://jsdelivr.net">
+    <title>تقرير التحليلات الفنية | كابتن ابراهيم اسماعيل</title>
+    <link href="https://cloudflare.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cloudflare.com">
-    <script src="https://jsdelivr.net"></script>
-    
     <style>
-        :root { --navy: #1a2a3a; --gold: #d4af37; --bg: #f0f2f5; }
+        :root { --navy: #0a192f; --gold: #d4af37; --bg: #f8f9fa; }
         body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .kpi-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid var(--gold); height: 100%; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--navy); }
-        .stat-label { color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-        .chart-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .navbar-brand-custom { font-weight: 800; color: var(--navy) !important; }
-        .table-custom { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .table-custom thead { background: var(--navy); color: white; }
+        .dashboard-header { background: var(--navy); color: white; padding: 25px 0; border-bottom: 5px solid var(--gold); margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; border-bottom: 4px solid var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .section-title { font-weight: 800; color: var(--navy); border-right: 5px solid var(--gold); padding-right: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .table-ranking { border-collapse: separate; border-spacing: 0 10px; }
+        .table-ranking tr { background: white; }
+        .table-ranking td, .table-ranking th { padding: 15px !important; vertical-align: middle; border: none; }
+        .table-ranking thead tr { background: var(--navy) !important; color: var(--gold); }
+        .op-row-1 { border-right: 6px solid #ffd700; }
+        .op-row-2 { border-right: 6px solid #c0c2c5; }
+        
+        .battle-card { border-radius: 20px; color: white; transition: 0.3s; }
+        .final-signature { background: var(--navy); padding: 40px 0; margin-top: 50px; border-top: 3px solid var(--gold); color: white; }
+
+        /* --- تنسيقات الطباعة الاحترافية --- */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 10px !important; }
+            .container { width: 100% !important; max-width: 100% !important; }
+            /* تنسيق الكروت في الورق */
+            .stat-card { 
+                border: 2px solid #f0f0f0 !important; 
+                margin-bottom: 10px !important; 
+                box-shadow: none !important;
+                float: right; width: 30%; margin-left: 3%; /* رص الكروت بالعرض في الورقة */
+            }
+            .section-title { margin-top: 20px !important; clear: both; }
+            .table-ranking tr { page-break-inside: avoid; }
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand navbar-brand-custom" href="/">
-                <i class="fas fa-chart-line me-2 text-primary"></i> PROJECT ANALYTICS
-            </a>
-            <a href="/" class="btn btn-outline-dark btn-sm rounded-pill px-4">
-                <i class="fas fa-arrow-left me-1"></i> Back to Portal
-            </a>
+<header class="dashboard-header no-print">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-0">لوحة مؤشرات الأداء والإنتاجية</h2>
+            <small class="text-gold">الأسبوع الفني: {{ week_start }} ⬅ {{ week_end }}</small>
         </div>
-    </nav>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-warning fw-bold px-4 rounded-pill shadow">
+                <i class="fas fa-print me-1"></i> طباعة التقرير كاملاً
+            </button>
+            <a href="/" class="btn btn-outline-light rounded-pill px-3">الرئيسية</a>
+        </div>
+    </div>
+</header>
 
-    <div class="container pb-5">
+
+       <!-- 1. كروت الإجمالي (تم تعديلها لتظهر في الطباعة) -->
+    <div class="row g-4 mb-5 text-center">
+        <!-- كارت المكعبات -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6 class="text-muted fw-bold">إجمالي المكعبات (الأسبوع)</h6>
+                <h2 class="fw-bold text-navy">{{ total_m3|floatformat:0 }}</h2>
+                <small class="text-secondary">متر مكعب</small>
+            </div>
+        </div>
+        <!-- كارت التقدم -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6 class="text-muted fw-bold">إجمالي التقدم (الأسبوع)</h6>
+                <h2 class="fw-bold text-navy">{{ total_meters|floatformat:0 }}</h2>
+                <small class="text-secondary">متر طولي</small>
+            </div>
+        </div>
+        <!-- كارت السولار (يختفي في الطباعة لو مش ضروري أو سيبه يظهر) -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6 class="text-muted fw-bold">استهلاك السولار</h6>
+                <h2 class="fw-bold text-danger">{{ total_fuel|floatformat:0 }}</h2>
+                <small class="text-secondary">لتر</small>
+            </div>
+        </div>
+    </div>
+
+        <!-- 2. ميزان القوى والإنتاجية (نسخة التباين العالي جداً) -->
+    <div id="print-battle" class="mb-5">
+        <div class="section-title">
+            <span style="color: #0a192f !important;"><i class="fas fa-balance-scale me-2"></i> ميزان القوى والإنتاجية (مقارنة المجموعات)</span>
+            <button onclick="printDiv('print-battle')" class="btn btn-sm btn-outline-primary no-print">
+                <i class="fas fa-print me-1"></i> طباعة المقارنة فقط
+            </button>
+        </div>
         
-        <!-- Top Summary Cards -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-3">
-                <div class="kpi-card text-center">
-                    <div class="stat-label">Total Production</div>
-                    <div class="stat-value">{{ overall_stats.total_project_m3|floatformat:0 }} <small class="fs-6">m³</small></div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card text-center">
-                    <div class="stat-label">Total Progress</div>
-                    <div class="stat-value">{{ overall_stats.total_project_meters|floatformat:0 }} <small class="fs-6">Mtrs</small></div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card text-center" style="border-top-color: #28a745;">
-                    <div class="stat-label">Active Vessels</div>
-                    <div class="stat-value">{{ dredger_analytics|length }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card text-center" style="border-top-color: #dc3545;">
-                    <div class="stat-label">Downtime Events</div>
-                    <div class="stat-value text-danger">{{ overall_stats.total_downtime }}</div>
-                </div>
-            </div>
-        </div>
+        <div class="row g-4">
+            {% for group in final_battle %}
+            <div class="col-md-6">
+                <!-- كارت الشفت - تم إجبار الألوان بالكامل -->
+                <div class="battle-card p-4 shadow-lg" 
+                     style="border-radius: 20px; background-color: #0a192f !important; border: 3px solid #d4af37 !important;">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="fw-bold mb-0" style="color: #ffffff !important; font-size: 2.2rem !important;">شفت ({{ group.name }})</h2>
+                        <i class="fas fa-users-gear fa-2x" style="color: #d4af37 !important;"></i>
+                    </div>
 
-        <div class="row">
-            <!-- Charts Section -->
-            <div class="col-lg-7">
-                <div class="chart-container">
-                    <h5 class="fw-bold mb-4 text-navy"><i class="fas fa-ship me-2"></i> Production Comparison (m³)</h5>
-                    <canvas id="productionBarChart" height="200"></canvas>
+                    <div class="row text-center">
+                        <!-- المكعبات -->
+                        <div class="col-6 mb-4 border-start" style="border-color: #334155 !important;">
+                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">المكعبات</small>
+                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 2rem !important; margin: 5px 0;">{{ group.m3|floatformat:0 }}</h3>
+                            <small style="color: #d4af37 !important; font-weight: bold;">متر مكعب</small>
+                        </div>
+                        <!-- التقدم -->
+                        <div class="col-6 mb-4">
+                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">التقدم</small>
+                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 2rem !important; margin: 5px 0;">{{ group.meters|floatformat:0 }}</h3>
+                            <small style="color: #d4af37 !important; font-weight: bold;">متر طولي</small>
+                        </div>
+                        <!-- ساعات التشغيل -->
+                        <div class="col-6 border-start" style="border-color: #334155 !important;">
+                            <small style="color: #94a3b8 !important; display: block;">ساعات العمل</small>
+                            <h4 style="color: #00ff88 !important; font-weight: 800 !important; font-size: 1.5rem !important;">{{ group.work_h }} س</h4>
+                        </div>
+                        <!-- ساعات التوقف -->
+                        <div class="col-6">
+                            <small style="color: #94a3b8 !important; display: block;">ساعات التوقف</small>
+                            <h4 style="color: #ff4d4d !important; font-weight: 800 !important; font-size: 1.5rem !important;">{{ group.stops }} س</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-5">
-                <div class="chart-container">
-                    <h5 class="fw-bold mb-4 text-navy"><i class="fas fa-gas-pump me-2"></i> Fuel Usage Distribution</h5>
-                    <canvas id="fuelPieChart" height="285"></canvas>
-                </div>
-            </div>
+            {% endfor %}
         </div>
+    </div>
 
-        <!-- Detailed Data Table -->
-        <div class="table-responsive table-custom mt-4">
-            <table class="table table-hover mb-0">
+
+    <!-- 3. جدول المشغلين (قابل للطباعة منفصلاً) -->
+    <div id="print-operators" class="page-break">
+        <div class="section-title">
+            <span><i class="fas fa-medal me-2"></i> حصاد كفاءة المشغلين (ترتيب أسبوعي)</span>
+            <button onclick="printDiv('print-operators')" class="btn btn-sm btn-outline-dark no-print">
+                <i class="fas fa-print me-1"></i> طباعة الترتيب فقط
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-ranking">
                 <thead>
-                    <tr>
-                        <th class="ps-4">Vessel Name</th>
-                        <th>Engine Hours</th>
-                        <th>Total Volume (m³)</th>
-                        <th>Distance (m)</th>
-                        <th>Total Fuel (L)</th>
-                        <th>Downtime Log</th>
-                    </tr>
+                    <tr><th>الترتيب</th><th class="text-start">المشغل</th><th>المجموعة</th><th>المكعبات</th><th>م3/س</th><th>المساهمة</th></tr>
                 </thead>
                 <tbody>
-                    {% for item in dredger_analytics %}
-                    <tr class="align-middle">
-                        <td class="ps-4 fw-bold text-navy">{{ item.dredger.name }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ item.total_hours }} h</span></td>
-                        <td class="fw-bold text-primary">{{ item.total_m3|floatformat:0 }} m³</td>
-                        <td>{{ item.total_meters }} m</td>
-                        <td>{{ item.total_fuel|floatformat:0 }} L</td>
-                        <td>
-                            {% if item.downtime_count > 0 %}
-                            <span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> {{ item.downtime_count }} Records</span>
-                            {% else %}
-                            <span class="text-success small">Operational</span>
-                            {% endif %}
+                    {% for op in operators_ranking %}
+                    <tr class="{% if forloop.counter == 1 %}op-row-1{% elif forloop.counter == 2 %}op-row-2{% endif %}">
+                        <td class="fw-bold fs-4">{{ forloop.counter }}</td>
+                        <td class="text-start fw-bold text-navy fs-5">{{ op.name }}</td>
+                        <td><span class="badge {% if op.group == 'A' %}bg-primary{% else %}bg-warning text-dark{% endif %}">شفت {{ op.group }}</span></td>
+                        <td class="fw-bold fs-5">{{ op.m3|floatformat:1 }}</td>
+                        <td class="text-success fw-bold">{{ op.rate }}</td>
+                        <td style="width: 180px;">
+                            <div class="progress" style="height: 10px;"><div class="progress-bar {% if op.contribution > 0 %}bg-success{% else %}bg-secondary{% endif %}" style="width: {{ op.contribution }}%"></div></div>
+                            <small class="fw-bold">{{ op.contribution }}%</small>
                         </td>
                     </tr>
                     {% endfor %}
@@ -118,51 +172,52 @@
         </div>
     </div>
 
-    <!-- الجزء الخاص بمعالجة البيانات وتحويلها لرسوم بيانية -->
-    {{ dredger_analytics_json|json_script:"analytics-data" }}
+    <!-- 4. سجل الوقفات -->
+    <div class="page-break mt-5 no-print">
+        <h3 class="section-title">تحليل الوقفات</h3>
+        <div class="row g-4">
+            {% for g_stop in stop_analysis %}
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h5 class="fw-bold {% if g_stop.group == 'A' %}text-primary{% else %}text-warning{% endif %}">مجموعة ({{ g_stop.group }})</h5>
+                    <table class="table table-sm">
+                        {% for item in g_stop.items %}
+                        <tr><td class="text-start fw-bold">{{ item.name }}</td><td class="text-center">{{ item.count }} مرة</td><td class="text-danger fw-bold">{{ item.hours }}س</td></tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
-    <script>
-        // سحب البيانات التي أرسلها الـ view بشكل آمن
-        const rawData = JSON.parse(document.getElementById('analytics-data').textContent);
+<footer class="final-signature text-center">
+    <div style="width: 100px; height: 3px; background: var(--gold); margin: 0 auto 15px;"></div>
+    <p class="mb-1 opacity-75">تم تطوير وتصميم النظام باحترافية بواسطة</p>
+    <h1 class="fw-bold" style="color: var(--gold); letter-spacing: 2px;">كابتن / ابراهيم اسماعيل</h1>
+    <small class="opacity-50">2026 &copy; جميع الحقوق محفوظة لشركة قاصد خير</small>
+</footer>
+
+<!-- كود الطباعة الذكي -->
+<script>
+    function printDiv(divId) {
+        var printContents = document.getElementById(divId).innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        // استبدال محتوى الصفحة بالجزء المراد طباعته مؤقتاً
+        document.body.innerHTML = "<html><head><title>طباعة تقرير</title>" + 
+            "<link rel='stylesheet' href='https://cloudflare.com'>" +
+            "<style>body{direction:rtl; padding:20px; font-family:sans-serif;} .no-print{display:none;} table{width:100%; border-collapse:collapse;} th,td{border:1px solid #ddd; padding:10px; text-align:center;} .badge{border:1px solid #000; color:black;} h2,h3{border-bottom:2px solid #d4af37; padding-bottom:10px; margin-bottom:20px;}</style>" +
+            "</head><body>" + printContents + "</body></html>";
+
+        window.print();
         
-        const labels = rawData.map(item => item.dredger_name);
-        const prodData = rawData.map(item => item.total_m3);
-        const fuelData = rawData.map(item => item.total_fuel);
+        // إرجاع الصفحة لأصلها بعد الطباعة
+        document.body.innerHTML = originalContents;
+        window.location.reload(); // إعادة تحميل لضمان عمل الأزرار
+    }
+</script>
 
-        // رسم بياني للأعمدة (الإنتاج)
-        new Chart(document.getElementById('productionBarChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Quantity (m³)',
-                    data: prodData,
-                    backgroundColor: ['rgba(26, 42, 58, 0.8)', 'rgba(212, 175, 55, 0.8)'],
-                    borderRadius: 8
-                }]
-            },
-            options: { 
-                responsive: true, 
-                plugins: { legend: { display: false } } 
-            }
-        });
-
-        // رسم بياني دائري (السولار)
-        new Chart(document.getElementById('fuelPieChart'), {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: fuelData,
-                    backgroundColor: ['#1a2a3a', '#d4af37'],
-                    hoverOffset: 4
-                }]
-            },
-            options: { 
-                responsive: true, 
-                cutout: '70%' 
-            }
-        });
-    </script>
 </body>
 </html>

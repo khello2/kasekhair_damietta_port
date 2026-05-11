@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>جرد بحرية الكراكة | قاصد خير</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --bg: #f4f7f6; }
+        html, body { overflow-x: hidden; width: 100%; background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        .header-box { background: var(--navy); color: white; padding: 15px; border-bottom: 4px solid var(--gold); margin-bottom: 15px; }
+        .main-container { width: 100%; max-width: 500px; margin: 0 auto; padding: 0 10px; }
+        .card-section { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-top: 4px solid var(--navy); }
+        .section-title { color: var(--navy); font-weight: 800; font-size: 0.95rem; margin-bottom: 12px; text-align: center; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #eee; }
+        .form-group-custom { margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .row-label { display: block; font-weight: 700; color: #444; font-size: 0.85rem; margin-bottom: 4px; }
+        .form-control-custom { border: 2px solid #ced4da; font-weight: 800; text-align: center; font-size: 1.1rem; color: var(--navy); height: 48px; border-radius: 8px; width: 100%; }
+        .btn-add-inline { background: none; border: 1px solid var(--gold); color: var(--navy); font-weight: bold; font-size: 0.75rem; border-radius: 20px; padding: 5px 15px; width: 100%; margin-top: 5px; }
+        .new-item-row { background: #fffcf0; border: 1px dashed var(--gold); padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .btn-save-final { background: var(--navy); color: var(--gold); font-weight: 900; padding: 15px; width: 100%; border-radius: 12px; font-size: 1.2rem; border: 2px solid var(--gold); margin-top: 15px; margin-bottom: 50px; }
+    </style>
+</head>
+<body>
+
+<div class="header-box text-center shadow-sm">
+    <img src="{% static 'images/logo.png' %}" width="50" class="bg-white rounded p-1 mb-1">
+    <h6 class="fw-bold mb-0">تسجيل جرد عهدة البحرية (الكراكة)</h6>
+</div>
+
+<div class="main-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- 1. بيانات الوردية -->
+        <div class="card-section">
+            <div class="row g-2">
+                <div class="col-6"><label class="row-label">التاريخ</label><div class="form-control bg-light border-0 fw-bold text-center py-2">{{ date|date:"d-m-Y" }}</div></div>
+                <div class="col-6"><label class="row-label">المسؤول</label><div class="form-control bg-light border-0 fw-bold text-center py-2">{{ user.username }}</div></div>
+            </div>
+        </div>
+
+        <!-- 2. الأقسام والأصناف الحالية -->
+        {% for cat_name, items in categorized_items.items %}
+        <div class="card-section">
+            <div class="section-title text-primary"><i class="fas fa-ship me-1"></i> قسم: {{ cat_name }}</div>
+            <div id="cat-container-{{ forloop.counter }}">
+                {% for item in items %}
+                <div class="form-group-custom">
+                    <label class="row-label">{{ item.name }}:</label>
+                    <input type="number" name="qty_{{ item.id }}" value="{{ item.quantity|floatformat:0 }}" class="form-control form-control-custom">
+                    <small class="text-muted" style="font-size: 0.65rem;">الرصيد الحالي بالمخزن: {{ item.quantity|floatformat:0 }}</small>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- زرار إضافة صنف للقسم ده -->
+            <button type="button" class="btn btn-add-inline" onclick="addNewRow('cat-container-{{ forloop.counter }}', '{{ cat_name }}')">
+                <i class="fas fa-plus me-1"></i> إضافة صنف إضافي لـ {{ cat_name }}
+            </button>
+        </div>
+        {% endfor %}
+
+        <!-- 3. زرار إضافة قسم جديد (لو الصفحة فاضية) -->
+        <div class="card-section" style="border-top-color: var(--gold); background: #fffcf0;">
+            <div class="fw-bold text-navy mb-2 text-center small">أضف صنف تحت قسم جديد تماماً:</div>
+            <div id="new-section-container"></div>
+            <button type="button" class="btn btn-warning btn-sm fw-bold w-100" onclick="addNewSection()">
+                <i class="fas fa-folder-plus me-1"></i> إضـافـة صـنـف وقـسـم جـديـد
+            </button>
+        </div>
+
+        <!-- 4. الملاحظات -->
+        <div class="card-section">
+            <div class="section-title text-info"><i class="fas fa-edit me-1"></i> ملاحظات الجرد</div>
+            <textarea name="notes" class="form-control border-2 fw-bold" rows="3" placeholder="سجل أي ملاحظات هنا..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-save-final shadow-lg">حـفـظ جـرد الـكـراكـة</button>
+    </form>
+</div>
+
+<script>
+    // وظيفة إضافة صنف لقسم موجود
+    function addNewRow(containerId, catName) {
+        const container = document.getElementById(containerId);
+        const div = document.createElement('div');
+        div.className = 'new-item-row mb-2';
+        div.innerHTML = `
+            <input type="hidden" name="new_item_cat[]" value="${catName}">
+            <div class="row g-1">
+                <div class="col-8"><input type="text" name="new_item_name[]" placeholder="اسم الصنف" class="form-control form-control-sm fw-bold"></div>
+                <div class="col-3"><input type="number" name="new_item_qty[]" placeholder="عدد" class="form-control form-control-sm text-center fw-bold"></div>
+                <div class="col-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="this.closest('.new-item-row').remove()">X</button></div>
+            </div>`;
+        container.appendChild(div);
+    }
+
+    // وظيفة إنشاء قسم جديد وصنف
+    function addNewSection() {
+        const container = document.getElementById('new-section-container');
+        const div = document.createElement('div');
+        div.className = 'new-item-row mb-3 shadow-sm p-2';
+        div.style.border = '2px solid var(--gold)';
+        div.innerHTML = `
+            <input type="text" name="new_item_cat[]" placeholder="اسم القسم الجديد (مثلاً: طلمبات)" class="form-control form-control-sm fw-bold border-gold text-center mb-2">
+            <div class="row g-1">
+                <div class="col-8"><input type="text" name="new_item_name[]" placeholder="اسم الصنف" class="form-control form-control-sm fw-bold"></div>
+                <div class="col-3"><input type="number" name="new_item_qty[]" placeholder="عدد" class="form-control form-control-sm text-center fw-bold"></div>
+                <div class="col-1 text-center"><button type="button" class="btn btn-sm text-danger" onclick="this.closest('.new-item-row').remove()">X</button></div>
+            </div>`;
+        container.appendChild(div);
+    }
+</script>
+</body>
+</html>

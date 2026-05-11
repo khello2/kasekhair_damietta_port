@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تقرير فني الخط | قاصد خير</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --bg: #f4f7f6; }
+        html, body { overflow-x: hidden; width: 100%; background-color: var(--bg); font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .header-box { background: var(--navy); color: white; padding: 15px; border-bottom: 4px solid var(--gold); margin-bottom: 15px; }
+        .main-container { width: 100%; max-width: 500px; margin: 0 auto; padding: 0 10px; }
+        
+        .card-section { background: white; border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-top: 5px solid var(--navy); }
+        .section-title { color: var(--navy); font-weight: 800; font-size: 1rem; margin-bottom: 20px; text-align: center; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
+        
+        /* التنسيق الموحد لجميع الخانات */
+        .form-group-custom { margin-bottom: 20px; text-align: right; }
+        .row-label { display: block; font-weight: 700; color: #333; font-size: 0.95rem; margin-bottom: 8px; padding-right: 5px; }
+        .form-control-custom { border: 2px solid #ced4da; font-weight: 800; text-align: center; font-size: 1.2rem; color: var(--navy); height: 55px; border-radius: 10px; width: 100% !important; }
+        .form-control-custom:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(212,175,55,0.2); background: #fffdf5; outline: none; }
+        
+        /* تصميم كروت الوارد والمستخدم */
+        .item-block { background: #fcfcfc; border: 1px solid #e0e0e0; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .sub-label { font-size: 0.8rem; font-weight: bold; color: #666; margin-bottom: 5px; display: block; }
+        .input-small-grid { height: 45px !important; font-size: 1.1rem !important; }
+
+        .btn-add-inline { background: #fff; border: 2px dashed var(--gold); color: var(--navy); font-weight: 800; font-size: 0.85rem; border-radius: 10px; padding: 10px; width: 100%; margin-top: 10px; transition: 0.3s; }
+        .btn-add-inline:hover { background: var(--gold); color: white; }
+
+        .work-textarea { width: 100% !important; min-height: 200px; border: 2px solid var(--navy); border-radius: 10px; padding: 15px; font-weight: bold; background: #fffdf5; font-size: 1.1rem; }
+        .btn-save-final { background: var(--navy); color: var(--gold); font-weight: 900; padding: 20px; width: 100%; border-radius: 15px; font-size: 1.4rem; border: 2px solid var(--gold); margin-bottom: 60px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+<div class="header-box text-center shadow-sm">
+    <img src="{% static 'images/logo.png' %}" width="60" class="bg-white rounded p-1 mb-1">
+    <h6 class="fw-bold mb-0">تقرير أعمال وصيانة خطوط الطرد</h6>
+</div>
+
+<div class="main-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- 1. الأساسيات -->
+        <div class="card-section">
+            <div class="row g-2">
+                <div class="col-6"><label class="row-label">التاريخ</label><div class="form-control bg-light border-0 fw-bold text-center" style="height:55px; line-height:40px;">{{ date|date:"d-m-Y" }}</div></div>
+                <div class="col-6"><label class="row-label">الوردية</label>
+                    <select name="shift" class="form-select border-2 fw-bold text-center" style="height:55px;">
+                        <option value="morning">صباحي</option><option value="night">مسائي</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. الخط بالخدمة (مع زرار إضافة صنف للخط) -->
+        <div class="card-section">
+            <div class="section-title text-primary"><i class="fas fa-ship me-1"></i> إحصائيات الخط بالخدمة</div>
+            <div id="line-fixed-container">
+                <div class="form-group-custom"><label class="row-label">مواسير عائمة:</label><input type="number" name="float_pipes" value="{{ last.float_pipes|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label">ربرات عائمة:</label><input type="number" name="float_rubbers" value="{{ last.float_rubbers|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label">طوافات الخط:</label><input type="number" name="float_pontoons" value="{{ last.float_pontoons|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label text-danger">مخاطيف الخط:</label><input type="number" name="float_anchors" value="{{ last.float_anchors|default:0 }}" class="form-control form-control-custom border-danger"></div>
+                <hr>
+                <div class="form-group-custom"><label class="row-label text-muted">مواسير أرضية:</label><input type="number" name="land_pipes" value="{{ last.land_pipes|default:0 }}" class="form-control form-control-custom"></div>
+            </div>
+            <!-- الزرار المطلوب: إضافة صنف جديد للخط -->
+            <button type="button" class="btn btn-add-inline" onclick="addNewPipeRow('line-fixed-container', 'إحصائيات الخط')">
+                <i class="fas fa-plus-circle me-1"></i> إضافة صنف جديد للخط العائم
+            </button>
+        </div>
+
+        <!-- 3. الأصناف الديناميكية (وارد / مستخدم / هالك) -->
+        {% for cat_name, items in categorized_items.items %}
+        <div class="card-section" style="border-top-color: var(--gold);">
+            <div class="section-title text-navy"><i class="fas fa-warehouse me-1"></i> قسم: {{ cat_name }}</div>
+            <div id="cat-container-{{ forloop.counter }}">
+                {% for item in items %}
+                <div class="item-block shadow-sm">
+                    <h6 class="fw-bold text-navy mb-3 border-bottom pb-2">
+                        {{ item.name }} <span class="badge bg-warning text-dark float-end">الرصيد: {{ item.current_qty|floatformat:0 }}</span>
+                    </h6>
+                    <div class="form-group-custom"><span class="sub-label text-success">الوارد (+):</span><input type="number" name="in_{{ item.id }}" value="0" class="form-control form-control-custom input-small-grid border-success"></div>
+                    <div class="form-group-custom"><span class="sub-label text-primary">المستخدم بالخط (-):</span><input type="number" name="out_{{ item.id }}" value="0" class="form-control form-control-custom input-small-grid border-primary"></div>
+                    <div class="form-group-custom"><span class="sub-label text-danger">الهالك / الخردة:</span><input type="number" name="scrap_{{ item.id }}" value="0" class="form-control form-control-custom input-small-grid border-danger"></div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-add-inline" onclick="addNewPipeRow('cat-container-{{ forloop.counter }}', '{{ cat_name }}')">
+                <i class="fas fa-plus-circle me-1"></i> إضافة صنف جديد لـ {{ cat_name }}
+            </button>
+        </div>
+        {% endfor %}
+
+        <!-- 4. المهمات والأدوات (مع زرار الإضافة) -->
+        <div class="card-section" style="border-top-color: #17a2b8;">
+            <div class="section-title text-info"><i class="fas fa-tools me-1"></i> المهمات والأدوات (العدد)</div>
+            <div id="tools-fixed-container">
+                <div class="form-group-custom"><label class="row-label">مسامير 30:</label><input type="number" name="bolts_30" value="{{ last.bolts_30|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label">مسامير 27:</label><input type="number" name="bolts_27" value="{{ last.bolts_27|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label">مفتاح 30:</label><input type="number" name="wrench_30" value="{{ last.wrench_30|default:0 }}" class="form-control form-control-custom"></div>
+                <div class="form-group-custom"><label class="row-label">ايرجن:</label><input type="number" name="air_gun" value="{{ last.air_gun|default:0 }}" class="form-control form-control-custom"></div>
+            </div>
+            <!-- الزرار المطلوب: إضافة صنف للعدد والادوات -->
+            <button type="button" class="btn btn-add-inline" onclick="addNewPipeRow('tools-fixed-container', 'المهمات والأدوات')">
+                <i class="fas fa-plus-circle me-1"></i> إضافة أداة أو عهدة جديدة
+            </button>
+        </div>
+
+        <!-- 5. بيان الأعمال -->
+        <div class="card-section">
+            <div class="section-title text-success"><i class="fas fa-edit me-1"></i> بـيـان الأعـمـال والمـلاحـظـات</div>
+            <textarea name="work_description" class="form-control work-textarea" placeholder="سجل هنا تفاصيل اليوم بالتفصيل..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-save-final">
+            <i class="fas fa-check-double me-1"></i> حـفـظ واعـتـمـاد الـتـقـريـر
+        </button>
+    </form>
+</div>
+
+<script>
+    // وظيفة الإضافة الموحدة لجميع الأقسام
+    function addNewPipeRow(containerId, catName) {
+        const container = document.getElementById(containerId);
+        const div = document.createElement('div');
+        div.className = 'item-block shadow-sm mb-3';
+        div.style.border = '2px dashed var(--gold)';
+        div.innerHTML = `
+            <input type="hidden" name="new_item_cat[]" value="${catName}">
+            <div class="form-group-custom">
+                <label class="row-label">اسم الصنف الجديد:</label>
+                <input type="text" name="new_item_name[]" placeholder="مثلاً: واير، شكلم، مفتاح.." class="form-control form-control-custom" style="height:45px; font-size:1rem;">
+            </div>
+            <div class="form-group-custom">
+                <label class="row-label">العدد الحالي:</label>
+                <div class="d-flex align-items-center">
+                    <input type="number" name="new_item_qty[]" value="0" class="form-control form-control-custom" style="height:45px;">
+                    <button type="button" class="btn btn-danger ms-2" onclick="this.closest('.item-block').remove()">X</button>
+                </div>
+            </div>`;
+        container.appendChild(div);
+    }
+</script>
+</body>
+</html>

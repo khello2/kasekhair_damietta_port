@@ -5,237 +5,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقرير فني - {{ report.date_started }}</title>
-    <link rel="stylesheet" href="https://jsdelivr.net">
+
+    <!-- المكاتب الأساسية (Bootstrap 5.3) لضمان عمل الأزرار -->
+    <link href="https://jsdelivr.net" rel="stylesheet">
     <link rel="stylesheet" href="https://cloudflare.com">
-    
+
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; --teal: #17a2b8; }
         body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; }
         .report-paper { background: white; max-width: 1100px; margin: 20px auto; padding: 40px; border: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        
+
+        /* الترويسة */
         .header-horizontal-row { display: flex; flex-direction: row; justify-content: space-between; align-items: stretch; background: #fcfcfc; border: 2px solid var(--navy); border-radius: 10px; overflow: hidden; }
-        .header-col { flex: 1; padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-left: 1px solid #dee2e6; }
+        .header-col { flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-left: 1px solid #dee2e6; }
         .header-col:last-child { border-left: none; }
 
-        .stat-box { background: #fff; border: 1px solid #eee; border-top: 4px solid var(--gold); border-radius: 10px; padding: 15px; text-align: center; height: 100%; transition: 0.3s; }
-        .stat-box:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* الكروت */
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: #fff; border: 1px solid #eee; border-top: 4px solid var(--gold); border-radius: 10px; padding: 12px; text-align: center; }
         .stat-label { font-size: 0.75rem; color: #666; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        .stat-number { font-size: 1.3rem; color: var(--navy); font-weight: 800; }
+        .stat-number { font-size: 1.2rem; color: var(--navy); font-weight: 800; }
+        .small-label { font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; }
 
+        /* التايم لاين */
         .timeline-container { border-right: 3px solid var(--navy); padding-right: 25px; position: relative; }
-        .timeline-item { position: relative; padding-bottom: 20px; border-bottom: 1px dashed #eee; margin-bottom: 15px; }
+        .timeline-item { position: relative; padding-bottom: 15px; border-bottom: 1px dashed #eee; margin-bottom: 10px; }
         .timeline-item::after { content: ''; position: absolute; right: -32px; top: 5px; width: 12px; height: 12px; background: var(--gold); border-radius: 50%; border: 2px solid var(--navy); }
-        .time-badge { background: var(--navy); color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
+        .time-badge { background: var(--navy); color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+        #detailedLog {
+    display: none; /* مخفي افتراضياً */
+}
+/* هذا الكلاس سيتم إضافته وحذفه بالتبادل عبر الجافاسكريبت */
+.show-details {
+    display: block !important;
+}
 
-        /* تنسيق الجدول الجديد */
-        .table-official { border-radius: 10px; overflow: hidden; border: 1px solid #dee2e6 !important; }
+
+
+        /* تنسيق إضافي للجدول لضمان عدم تمدد الورقة */
+        .table-official {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        /* الجدول */
+        .table-official { border-radius: 10px; overflow: hidden; border: 1px solid #dee2e6 !important; width: 100%; }
         .table-official thead { background: var(--navy); color: white; }
-        .table-official th { font-size: 0.85rem; padding: 15px !important; border: none !important; }
-        .table-official td { font-size: 0.95rem; vertical-align: middle; padding: 12px !important; border-bottom: 1px solid #f1f1f1; }
-        .progress-text { color: var(--teal); font-weight: 800; font-size: 1.1rem; }
-        
-        @media print { .no-print { display: none !important; } .report-paper { box-shadow: none; border: none; width: 100%; margin: 0; padding: 10px; } }
+        .table-official th { font-size: 0.8rem; padding: 10px !important; }
+        .table-official td { font-size: 0.9rem; padding: 8px !important; border-bottom: 1px solid #f1f1f1; }
+
+        /* الزر المطور */
+        .btn-toggle-details { background-color: var(--navy); color: var(--gold); border: 2px solid var(--gold); padding: 10px 30px; border-radius: 30px; font-weight: bold; transition: 0.3s; margin: 30px 0; }
+        .btn-toggle-details:hover { background-color: var(--gold); color: var(--navy); }
+
+        /* تنسيق الطباعة */
+        @media print {
+            .no-print, .btn-toggle-details, .collapse:not(.show), #detailedLog { display: none !important; }
+            .report-paper { box-shadow: none; border: none; width: 100%; margin: 0; padding: 10px; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container no-print mt-4 d-flex justify-content-between">
-        <a href="{% url 'reports_list' %}" class="btn btn-dark shadow-sm"><i class="fas fa-arrow-right me-1"></i> أرشيف التقارير</a>
-        <button onclick="window.print()" class="btn btn-primary shadow-sm px-4"><i class="fas fa-print me-1"></i> طباعة التقرير الفني</button>
+        <a href="{% url 'reports_list' %}" class="btn btn-dark shadow-sm"><i class="fas fa-arrow-right me-1"></i> الأرشيف</a>
+        <button onclick="window.print()" class="btn btn-primary shadow-sm px-4"><i class="fas fa-print me-1"></i> طباعة المختصر</button>
     </div>
 
     <div class="report-paper">
-        <!-- 1. اللوجو والشركة -->
+        <!-- 1. الترويسة -->
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 3px double var(--navy);">
             <div class="text-end">
-                <div style="color: var(--navy); font-weight: 900; font-size: 1.8rem;">شركة قاصد خير</div>
-                <div style="color: #666; font-weight: 600; font-size: 0.85rem;">للمقاولات العمومية والتوريدات</div>
-                <div class="mt-2 fw-bold text-primary">مشروع ردم الحاجز الشرقي - ميناء دمياط</div>
+                <div style="color: var(--navy); font-weight: 900; font-size: 1.5rem;">شركة قاصد خير للمقاولات</div>
+                <div class="mt-1 fw-bold text-primary small">مشروع ردم الحاجز الشرقي - ميناء دمياط</div>
             </div>
-            <img src="{% static 'images/logo.png' %}" width="110" alt="Logo">
+            <img src="{% static 'images/logo.png' %}" width="90" alt="Logo">
         </div>
 
-        <!-- 2. الترويسة الثلاثية -->
+        <!-- 2. معلومات الوردية -->
         <div class="header-horizontal-row mb-4">
             <div class="header-col">
-                <h5 class="fw-bold text-danger mb-1">{{ report.dredger.name }}</h5>
-                <div class="badge bg-navy px-3 py-2 mb-1">يوم عمل: {{ report.date_started|date:"d-m-Y" }}</div>
+                <h6 class="fw-bold text-danger mb-1">{{ report.dredger.name }}</h6>
+                <div class="badge bg-navy px-2 py-1 mb-1">{{ report.date_started|date:"d-m-Y" }}</div>
                 <div class="text-muted small fw-bold">{{ report.date_started|date:"l" }}</div>
             </div>
             <div class="header-col">
-                <h6 class="fw-bold text-navy border-bottom pb-1 mb-2 w-100"><i class="fas fa-users"></i> طاقم تشغيل الوردية</h6>
-                {% for name in unique_operators %}
-                    <div class="fw-bold text-dark mb-1 small"><i class="fas fa-user-check text-gold"></i> {{ name }}</div>
-                {% endfor %}
+                <h6 class="fw-bold text-navy border-bottom mb-1 w-100">طاقم التشغيل</h6>
+                {% for name in unique_operators %}<div class="fw-bold text-dark small">{{ name }}</div>{% endfor %}
             </div>
             <div class="header-col">
-                <h6 class="fw-bold text-navy border-bottom pb-1 mb-2 w-100"><i class="fas fa-project-diagram"></i> وضع خط الطرد</h6>
-                <div class="w-100 small text-start px-3">
-                    <div class="d-flex justify-content-between"><span>عائم:</span> <b>{{ floating_line }} م</b></div>
-                    <div class="d-flex justify-content-between"><span>أرضي:</span> <b>{{ land_line }} م</b></div>
-                    <div class="d-flex justify-content-between border-top mt-1 text-danger"><b>الإجمالي:</b> <b>{{ total_line }} م</b></div>
+                <h6 class="fw-bold text-navy border-bottom mb-1 w-100">وضع خط الطرد</h6>
+                <div class="w-100 small px-2">
+                    <div class="d-flex justify-content-between"><span>عائم/أرضي:</span> <b>{{ floating_line }} / {{ land_line }} م</b></div>
+                    <div class="d-flex justify-content-between border-top text-danger"><b>الإجمالي:</b> <b>{{ total_line }} م</b></div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. كروت الإحصائيات (6 كروت بدلاً من 8) -->
-        <div class="row g-3 mb-5 text-center">
-            <div class="col-md-4">
-                <div class="stat-box" style="border-top-color: var(--teal);">
-                    <div class="stat-label">إجمالي التقدم لليوم</div>
-                    <div class="stat-number" style="color: var(--teal);">{{ total_meters }} متر طولي</div>
+        <!-- 3. منطقة الكروت المحدثة (تنسيق مجمع) -->
+        <div class="stat-grid">
+            <!-- الصف الأول: التقدم وساعات العمل -->
+            <div class="stat-box" style="border-top-color: var(--teal);">
+                <div class="stat-label">إجمالي التقدم</div>
+                <div class="stat-number">{{ total_meters }} م</div>
+            </div>
+            <div class="stat-box" style="border-top-color: #28a745;">
+                <div class="stat-label">ساعات التشغيل</div>
+                <div class="stat-number text-success">{{ total_work_hours }}</div>
+            </div>
+
+            <!-- الصف الثاني: محاسبة السولار (المطور) وساعات التوقف -->
+            <div class="stat-box" style="border-top-color: #dc3545;">
+                <div class="stat-label mb-2">محاسبة السولار (24 ساعة)</div>
+                <div class="row g-0 align-items-center">
+                    <div class="col-3 border-end"><small class="text-muted d-block small-label">بداية</small><b>{{ fuel_start_val }}</b></div>
+                    <div class="col-3 border-end"><small class="text-success d-block small-label">مستلم</small><b>+{{ total_received }}</b></div>
+                    <div class="col-3 border-end"><small class="text-muted d-block small-label">نهاية</small><b>{{ fuel_end_val }}</b></div>
+                    <div class="col-3 text-danger"><small class="d-block small-label">الاستهلاك</small><b>{{ total_fuel_usage }}</b></div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="stat-box" style="border-top-color: #28a745;">
-                    <div class="stat-label">إجمالي ساعات التشغيل</div>
-                    <div class="stat-number text-success">{{ total_work_hours }}</div>
+            <div class="stat-box" style="border-top-color: #6c757d;">
+                <div class="stat-label">ساعات التوقف</div>
+                <div class="stat-number">{{ total_stop_hours }}</div>
+            </div>
+
+            <!-- الصف الثالث: الماكينة الرئيسية والمساعدة -->
+            <div class="stat-box" style="border-top-color: #17a2b8;">
+                <div class="stat-label mb-2">عداد الماكينة الرئيسية</div>
+                <div class="row g-0 align-items-center">
+                    <div class="col-4 border-end"><small class="text-muted d-block small-label">S</small><b>{{ main_engine.start }}</b></div>
+                    <div class="col-4 border-end"><small class="text-muted d-block small-label">E</small><b>{{ main_engine.end }}</b></div>
+                    <div class="col-4 text-info"><small class="d-block small-label">NET</small><b>{{ main_engine.net }}</b></div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="stat-box" style="border-top-color: #dc3545;">
-                    <div class="stat-label">إجمالي السولار المستهلك</div>
-                    <div class="stat-number text-danger">{{ total_fuel_usage }} لتر</div>
+            <div class="stat-box" style="border-top-color: #6f42c1;">
+                <div class="stat-label mb-2">عداد الماكينة المساعدة</div>
+                <div class="row g-0 align-items-center">
+                    <div class="col-4 border-end"><small class="text-muted d-block small-label">S</small><b>{{ aux_engine.start }}</b></div>
+                    <div class="col-4 border-end"><small class="text-muted d-block small-label">E</small><b>{{ aux_engine.end }}</b></div>
+                    <div class="col-4 text-primary"><small class="d-block small-label">NET</small><b>{{ aux_engine.net }}</b></div>
                 </div>
             </div>
-            
-<div class="row g-3 mb-4 text-center">
-    <!-- كارت الماكينة الرئيسية المطور -->
-    <div class="col-md-6">
-        <div class="stat-box" style="border-top: 4px solid #17a2b8; background: #fdfdfd;">
-            <div class="stat-label mb-2"><i class="fas fa-engine text-info"></i> ساعة الماكينة الرئيسية (Main Engine)</div>
-            <div class="row align-items-center">
-                <div class="col-4 border-end">
-                    <small class="text-muted d-block small-label">بداية اليوم</small>
-                    <span class="fw-bold">{{ main_engine.start }}</span>
+
+            <!-- الصف الرابع: إحداثيات البداية والنهاية -->
+            <div class="stat-box" style="border-top-color: var(--navy); background: #f9f9f9;">
+                <div class="stat-label">موقع بداية اليوم (12:00 PM)</div>
+                <div class="small mt-1 text-center">
+                    <span class="me-2">E: <b>{{ start_coords.east }}</b></span>
+                    <span>N: <b>{{ start_coords.north }}</b></span>
                 </div>
-                <div class="col-4 border-end">
-                    <small class="text-muted d-block small-label">نهاية اليوم</small>
-                    <span class="fw-bold">{{ main_engine.end }}</span>
-                </div>
-                <div class="col-4 text-info">
-                    <small class="text-info d-block fw-bold small-label">إجمالي التشغيل</small>
-                    <span class="fw-bold fs-5">{{ main_engine.net }}</span>
+            </div>
+            <div class="stat-box" style="border-top-color: var(--navy); background: #f9f9f9;">
+                <div class="stat-label">موقع نهاية اليوم (12:00 PM)</div>
+                <div class="small mt-1 text-center">
+                    <span class="me-2">E: <b>{{ end_coords.east }}</b></span>
+                    <span>N: <b>{{ end_coords.north }}</b></span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- كارت الماكينة المساعدة المطور -->
-    <div class="col-md-6">
-        <div class="stat-box" style="border-top: 4px solid #6f42c1; background: #fdfdfd;">
-            <div class="stat-label mb-2"><i class="fas fa-cogs text-primary"></i> ساعة الماكينة المساعدة (Aux Engine)</div>
-            <div class="row align-items-center">
-                <div class="col-4 border-end">
-                    <small class="text-muted d-block small-label">بداية اليوم</small>
-                    <span class="fw-bold">{{ aux_engine.start }}</span>
-                </div>
-                <div class="col-4 border-end">
-                    <small class="text-muted d-block small-label">نهاية اليوم</small>
-                    <span class="fw-bold">{{ aux_engine.end }}</span>
-                </div>
-                <div class="col-4 text-primary">
-                    <small class="text-primary d-block fw-bold small-label">إجمالي التشغيل</small>
-                    <span class="fw-bold fs-5">{{ aux_engine.net }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .small-label { font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; }
-</style>
-
-            <div class="col-md-4">
-                <div class="stat-box" style="border-top-color: #6c757d;">
-                    <div class="stat-label">إجمالي ساعات التوقف</div>
-                    <div class="stat-number text-secondary">{{ total_stop_hours }}</div>
-                </div>
-            </div>
-        </div>
-        <!-- كروت الإحداثيات (بداية ونهاية اليوم) -->
-<div class="row g-3 mb-5 text-center">
-    <div class="col-md-6">
-        <div class="stat-box" style="border-top-color: var(--navy); background-color: #f8f9fa;">
-            <div class="stat-label"><i class="fas fa-map-marker-alt text-primary"></i> موقع بداية اليوم (12:00 PM)</div>
-            <div class="d-flex justify-content-around mt-2">
-                <div><small class="text-muted">East:</small> <span class="fw-bold">{{ start_coords.east }}</span></div>
-                <div><small class="text-muted">North:</small> <span class="fw-bold">{{ start_coords.north }}</span></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="stat-box" style="border-top-color: var(--navy); background-color: #f8f9fa;">
-            <div class="stat-label"><i class="fas fa-flag-checkered text-danger"></i> موقع نهاية اليوم (12:00 PM)</div>
-            <div class="d-flex justify-content-around mt-2">
-                <div><small class="text-muted">East:</small> <span class="fw-bold">{{ end_coords.east }}</span></div>
-                <div><small class="text-muted">North:</small> <span class="fw-bold">{{ end_coords.north }}</span></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-        <!-- 4. Timeline -->
-        <div class="bg-light p-4 rounded mb-5 border shadow-sm">
-            <h6 class="fw-bold mb-4 text-navy border-bottom pb-2"><i class="fas fa-history me-2"></i> أولاً: بيان تسلسل العمليات والأحداث (Timeline):</h6>
+        <!-- 4. تسلسل العمليات -->
+        <div class="bg-light p-3 rounded mb-4 border">
+            <h6 class="fw-bold mb-3 text-navy border-bottom pb-1"><i class="fas fa-history me-1"></i> تسلسل العمليات والأحداث:</h6>
             <div class="timeline-container">
                 {% for event in timeline %}
                 <div class="timeline-item">
                     <span class="time-badge">{{ event.time_range }}</span>
-                    <span class="ms-3 fs-6 {% if event.status != 'active' %}text-danger fw-bold{% else %}text-dark{% endif %}">
-                        {{ event.description }}
-                    </span>
-                    <span class="badge bg-white text-muted border ms-2">المدة: {{ event.duration_str }}</span>
+                    <span class="ms-2 small {% if event.status != 'active' %}text-danger fw-bold{% endif %}">{{ event.description }}</span>
+                    <span class="badge bg-white text-muted border ms-1 small">المدة: {{ event.duration_str }}</span>
                 </div>
-                {% empty %}
-                <p class="text-muted">لا يوجد أحداث مسجلة.</p>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- 5. الجدول التفصيلي (تنسيق محسن) -->
-        <h6 class="fw-bold mb-3 text-navy"><i class="fas fa-table me-2"></i> ثانياً: تفاصيل سجلات الورديات (الأداء والوقود):</h6>
-        <table class="table table-official text-center align-middle mb-5">
-            <thead>
-                <tr>
-                    <th style="width: 20%;">المشغل / الفترة</th>
-                    <th style="width: 15%;">ساعات العمل</th>
-                    <th style="width: 25%;">السولار (S+R / E)</th>
-                    <th style="width: 15%;">الاستهلاك (لتر)</th>
-                    <th style="width: 25%;">التقدم بالمتر (من الخريطة)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in shifts_data %}
-                <tr>
-                    <td class="fw-bold">
-                        {{ item.obj.operator.name }}<br>
-                        <span class="badge bg-light text-navy border fw-normal mt-1">{{ item.obj.get_shift_time_display }}</span>
-                    </td>
-                    <td class="text-success fw-bold">{{ item.work_h }}</td>
-                    <td class="small text-start ps-4">
-                        <div class="text-muted">بداية: {{ item.obj.fuel_start }}</div>
-                        {% if item.obj.fuel_received > 0 %}<div class="text-success">تموين: +{{ item.obj.fuel_received }}</div>{% endif %}
-                        <div class="text-dark fw-bold">نهاية: {{ item.obj.fuel_end|default:"--" }}</div>
-                    </td>
-                    <td class="text-danger fw-bold">{{ item.obj.fuel_usage }}</td>
-                    <td class="progress-text">
-                        <i class="fas fa-long-arrow-alt-left me-2"></i>
-                        {{ item.obj.progress_meters }} م
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- زر التحكم في العرض -->
+        <div class="text-center no-print my-4">
+            <button class="btn btn-toggle-details shadow-sm" type="button" id="toggleBtn">
+                <i class="fas fa-search-plus me-2"></i> اضغط لعرض تفاصيل جلسات المشغلين
+            </button>
+        </div>
 
-        <!-- Signatures -->
-        <div class="row mt-5 pt-4 border-top text-center fw-bold">
-            <div class="col-4">توقيع مشرف الموقع</div>
-            <div class="col-4">توقيع المكتب الفني</div>
-            <div class="col-4">مدير المشروع</div>
+<!-- 6. القسم المخفي (تحليل الأداء الفعلي) -->
+<div id="detailedLog" style="display: none;">
+    <div class="card card-body bg-light border-0 p-0 mb-4 shadow-sm">
+        <h6 class="fw-bold p-3 mb-0 text-navy bg-white rounded-top border-bottom">
+            <i class="fas fa-stopwatch me-2 text-gold"></i> تحليل كفاءة المشغلين (بناءً على ساعات التشغيل الفعلية)
+        </h6>
+        <div class="table-responsive">
+            <table class="table table-official text-center align-middle bg-white mb-0">
+                <thead>
+                    <tr class="table-dark">
+                        <th>المشغل</th>
+                        <th class="text-success">تشغيل فعلي</th>
+                        <th class="text-danger">إجمالي توقفات</th>
+                        <th>الإنتاج (متر)</th>
+                        <th style="background: var(--gold); color: var(--navy);">المعدل (م/س فعلي)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in performance_table %}
+                    <tr>
+                        <td class="fw-bold text-navy">{{ row.operator }}</td>
+                        <td class="text-success fw-bold">{{ row.work_time_str }}</td>
+                        <td class="text-danger small">{{ row.stop_time_str }}</td>
+                        <td class="fw-bold">{{ row.meters }} م</td>
+                        <td>
+                            <span class="badge rounded-pill bg-warning text-dark px-3 py-2 fs-6">
+                                <i class="fas fa-tachometer-alt me-1"></i> {{ row.rate }} م/س
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
+
+        <!-- التوقيعات -->
+        <div class="row mt-5 pt-3 border-top text-center fw-bold small">
+            <div class="col-4"> مكتب التشغيل/</div><div class="col-4">المكتب الفني/</div><div class="col-4">مدير المشروع/</div>
+        </div>
+    </div>
+
+    <!-- تفعيل مكتبة Bootstrap لضمان عمل الزر -->
+    <script src="https://jsdelivr.net"></script>
+    <script>
+    // كود يدوي بسيط لضمان العمل بدون مكتبات خارجية
+    document.getElementById('toggleBtn').onclick = function() {
+        var details = document.getElementById('detailedLog');
+        var btn = this;
+
+        if (details.style.display === "none" || details.style.display === "") {
+            details.style.display = "block";
+            btn.innerHTML = '<i class="fas fa-search-minus me-2"></i> إخفاء التفاصيل الفنية';
+            btn.style.backgroundColor = "#d4af37"; // تغيير لون الزر للتنبيه
+            btn.style.color = "#1a2a3a";
+        } else {
+            details.style.display = "none";
+            btn.innerHTML = '<i class="fas fa-search-plus me-2"></i> اضغط لعرض تفاصيل جلسات المشغلين';
+            btn.style.backgroundColor = "#1a2a3a";
+            btn.style.color = "#d4af37";
+        }
+    };
+</script>
+
 </body>
 </html>

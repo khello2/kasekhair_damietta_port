@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>كشف جرد المخزن - {% now "d-m-Y" %}</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
+        .inventory-paper { background: white; max-width: 1000px; margin: auto; padding: 40px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header-title { color: var(--navy); font-weight: 900; font-size: 1.8rem; border-bottom: 4px solid var(--gold); padding-bottom: 10px; margin-bottom: 20px; }
+        .table-inventory { border: 2px solid var(--navy) !important; }
+        .table-inventory thead { background: var(--navy); color: white; }
+        .table-inventory th { padding: 12px !important; font-weight: bold; border: 1px solid #444 !important; }
+        .table-inventory td { padding: 10px !important; border: 1px solid #dee2e6 !important; font-weight: 500; vertical-align: middle; }
+        .row-even { background-color: #fcfcfc; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .inventory-paper { border: none; box-shadow: none; width: 100%; margin: 0; padding: 10px; }
+            body { background: white; padding: 0; }
+            .table-inventory thead { background: #1a2a3a !important; color: white !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print mb-3 text-start">
+    <button onclick="window.print()" class="btn btn-dark shadow-sm"><i class="fas fa-print me-2"></i> طباعة كشف الجرد</button>
+</div>
+
+<div class="inventory-paper">
+    <!-- الترويسة -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="header-title mb-1">شركة قاصد خير للمقاولات</div>
+            <div class="fw-bold text-muted"><i class="fas fa-warehouse me-2"></i> بيان جرد الأصناف والمهمات بالمخزن</div>
+        </div>
+        <img src="{% static 'images/logo.png' %}" width="100" alt="Logo">
+    </div>
+
+    <div class="d-flex justify-content-between mb-3 fw-bold small text-navy">
+        <span>تاريخ الجرد: {% now "d-m-Y" %}</span>
+        <span>وقت الاستخراج: {% now "H:i" %}</span>
+    </div>
+
+    <!-- جدول البيانات -->
+    <table class="table table-bordered table-inventory text-center">
+        <thead>
+            <tr>
+                <th style="width: 10%;">م</th>
+                <th style="width: 45%;">اسم الصنف / المهمة</th>
+                <th style="width: 25%;">الكمية الحالية</th>
+                <th style="width: 20%;">الوحدة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="{% cycle '' 'row-even' %}">
+                <td>{{ forloop.counter }}</td>
+                <td class="text-start ps-4">{{ item.name }}</td>
+                <td class="fw-bold fs-5">{{ item.quantity }}</td>
+                <td class="text-muted">{{ item.unit|default:"عدد" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="py-5 text-muted">لا توجد أصناف مسجلة في المخزن حالياً</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- تذييل التقرير -->
+    <div class="row mt-5 text-center fw-bold small">
+        <div class="col-4">أمين المخزن/<br><br>...................</div>
+        <div class="col-4">مكتب التشغيل/<br><br>...................</div>
+        <div class="col-4">المكتب الفني/<br><br>...................</div>
+        <div class="col-4">مدير المشروع/<br><br>...................</div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل الجرود | قاصد خير</title>
+    <link href="https://cloudflare.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --light-blue: #eef2f7; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; padding-bottom: 50px; }
+
+        .header-title { background: var(--navy); color: var(--gold); padding: 20px; text-align: center; border-bottom: 5px solid var(--gold); margin-bottom: 20px; }
+
+        /* مستطيل الجرد الملون */
+        .report-block {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 2px solid var(--navy);
+        }
+
+        /* الجزء العلوي (التاريخ) */
+        .block-top {
+            background: var(--navy);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .date-text { font-size: 1.3rem; font-weight: 900; }
+        .time-text { font-size: 1rem; color: var(--gold); }
+
+        /* الجزء الأوسط (المسؤول) */
+        .block-body {
+            padding: 20px;
+            background: var(--light-blue);
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .operator-label { font-size: 0.9rem; color: #555; font-weight: bold; display: block; }
+        .operator-name { font-size: 1.5rem; color: var(--navy); font-weight: 900; }
+
+        /* زرار الطباعة الضخم */
+        .btn-print-huge {
+            background: var(--gold);
+            color: var(--navy) !important;
+            display: block;
+            width: 100%;
+            padding: 18px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.3s;
+            border: none;
+        }
+        .btn-print-huge:hover { background: #b8860b; }
+        .btn-print-huge i { margin-left: 10px; }
+
+        .back-home { margin: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header-title shadow">
+    <h2 class="fw-bold mb-0">سجل تقارير جرد البحرية</h2>
+</div>
+
+<div class="container">
+    <div class="back-home text-center">
+        <a href="/" class="btn btn-dark rounded-pill px-5 fw-bold"> <i class="fas fa-home me-2"></i> العودة للرئيسية </a>
+    </div>
+
+    {% for report in reports %}
+    <!-- مستطيل جرد واحد -->
+    <div class="report-block">
+        <div class="block-top">
+            <div class="date-text"><i class="far fa-calendar-alt me-2"></i> {{ report.date|date:"d / m / Y" }}</div>
+            <div class="time-text fw-bold">{{ report.date|date:"H:i" }}</div>
+        </div>
+
+        <div class="block-body">
+            <span class="operator-label">المسؤول عن الجرد</span>
+            <span class="operator-name">{{ report.operator.name|default:"الإدارة" }}</span>
+            <div class="mt-2">
+                <span class="badge bg-navy text-white px-3 py-2" style="font-size: 0.9rem;">
+                    تم جرد {{ report.details.count }} صنف
+                </span>
+            </div>
+        </div>
+
+        <a href="{% url 'print_marine_inventory' report.id %}" target="_blank" class="btn-print-huge">
+            <i class="fas fa-print"></i> طـبـاعة الـكـشـف الآن
+        </a>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning text-center fw-bold fs-4"> لا توجد تقارير جرد مسجلة حتى الآن </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
