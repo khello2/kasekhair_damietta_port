@@ -4,91 +4,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير بايب فايتر - {{ report.date }}</title>
-
-    <link href="https://cloudflare.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
-
+    <title>تقرير بايب فايتر رسمي - {{ report.date|date:"d-m-Y" }}</title>
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; }
-
-        .report-paper {
-            background: white; max-width: 1000px; margin: 20px auto;
-            padding: 40px; border: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; margin: 0; padding: 0; }
+        .report-paper { background: white; max-width: 900px; margin: 20px auto; padding: 40px; border: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         .header-title { color: var(--navy); font-weight: 900; font-size: 1.6rem; border-bottom: 3px double var(--navy); padding-bottom: 10px; }
-
-        .section-box { border: 1px solid #999; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .section-box { border: 1px solid #999; border-radius: 8px; margin-bottom: 15px; overflow: hidden; width: 100%; }
         .section-header { background: var(--navy); color: var(--gold); padding: 8px 15px; font-weight: bold; font-size: 0.95rem; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; }
         .stat-item { text-align: center; border-left: 1px solid #eee; }
         .stat-item:last-child { border-left: none; }
         .stat-val { display: block; font-weight: 800; font-size: 1.2rem; color: var(--navy); }
         .stat-lbl { font-size: 0.75rem; color: #666; font-weight: bold; }
 
         .table-custom { width: 100%; margin-bottom: 0; border-collapse: collapse; }
-        .table-custom th { background: #f0f0f0; border: 1px solid #999; padding: 8px; font-size: 0.85rem; text-align: center; }
+        .table-custom th { background: #f0f0f0; border: 1px solid #999; padding: 8px; font-size: 0.85rem; text-align: center; color: var(--navy); font-weight: 800; }
         .table-custom td { border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold; font-size: 0.9rem; }
 
-        .work-description-box { padding: 15px; font-size: 0.95rem; line-height: 1.6; background: #fff; white-space: pre-line; border-top: 1px solid #eee; }
+        .cat-title { background: #f4f6f8; color: var(--navy); font-weight: 800; padding: 6px 15px; border-bottom: 1px solid #999; font-size: 0.85rem; text-align: right; }
+        .work-description-box { padding: 20px; font-size: 1.05rem; line-height: 1.7; background: #fffdf5; white-space: pre-line; min-height: 100px; font-weight: 600; border-top: 1px solid #eee; }
+        .badge-info-custom { background: #eef2f7; color: var(--navy); border: 1px solid #d1d9e0; padding: 8px 20px; border-radius: 20px; font-size: 0.95rem; display: inline-block; width: 100%; box-sizing: border-box; }
 
-        .badge-info-custom { background: #eef2f7; color: var(--navy); border: 1px solid #d1d9e0; padding: 5px 20px; border-radius: 20px; font-size: 0.9rem; }
+        .footer-sig { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; font-weight: bold; }
+        .sig-box { border-top: 1px solid #000; width: 140px; margin: 40px auto 0 auto; padding-top: 5px; }
 
         @media print {
             .no-print { display: none !important; }
-            .report-paper { margin: 0; border: none; width: 100% !important; padding: 10px; }
+            body { background: white; }
+            .report-paper { margin: 0; border: none; width: 100% !important; padding: 10px; box-shadow: none; }
             .section-box { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
 
-<div class="container no-print mt-3 d-flex justify-content-between">
-    <a href="{% url 'reports_list' %}" class="btn btn-dark btn-sm"><i class="fas fa-arrow-right me-1"></i> الأرشيف</a>
-    <button onclick="window.print()" class="btn btn-warning fw-bold px-4"><i class="fas fa-print me-1"></i> طـبـاعـة</button>
+<div class="container no-print mt-3 d-flex justify-content-between" style="max-width: 900px; margin: auto; padding: 0 40px;">
+    <a href="/" style="background: #333; color: white; padding: 8px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9rem;">الرئيسية</a>
+    <button onclick="window.print()" style="background: var(--gold); color: var(--navy); padding: 8px 25px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">تنفيذ أمر الطباعة الآن</button>
 </div>
 
-<div class="report-paper shadow-lg">
-    <!-- 1. الترويسة الرسمية -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="report-paper">
+    <!-- 1. الترويسة -->
+    <div class="d-flex justify-content-between align-items-center mb-4" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2 class="header-title mb-0">شركة قاصد خير للمقاولات</h2>
-            <div class="fw-bold text-primary mt-1"><i class="fas fa-tools me-2"></i>تقرير فني صيانة خطوط الطرد</div>
+            <h2 class="header-title mb-0" style="margin:0;">شركة قاصد خير للمقاولات</h2>
+            <div class="fw-bold text-primary mt-1" style="font-weight: bold; color: var(--navy); margin-top: 5px;"><i class="fas fa-tools me-2"></i>تقرير فني صيانة خطوط الطرد وعمليات الردم</div>
         </div>
-        <img src="{% static 'images/logo.png' %}" width="100" alt="Logo">
+        <img src="{% static 'images/logo.png' %}" width="90" alt="Logo">
     </div>
 
-    <!-- 2. بيانات الوردية -->
-    <div class="row mb-4 text-center">
-        <div class="col-4"><div class="badge-info-custom">التاريخ: <b>{{ report.date|date:"d-m-Y" }}</b></div></div>
-        <div class="col-4"><div class="badge-info-custom">الوردية: <b>{{ report.get_shift_display }}</b></div></div>
-        <div class="col-4"><div class="badge-info-custom">المسؤول: <b>{{ report.operator_in_charge.name }}</b></div></div>
+    <!-- 2. البيانات الميدانية -->
+    <div class="row mb-4 text-center" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div style="flex: 1;"><div class="badge-info-custom">التاريخ: <b>{{ report.date|date:"d-m-Y" }}</b></div></div>
+        <div style="flex: 1;"><div class="badge-info-custom">الوردية: <b>{{ report.get_shift_display }}</b></div></div>
+        <div style="flex: 1;"><div class="badge-info-custom">المسؤول: <b>{{ report.operator_in_charge.name }}</b></div></div>
     </div>
 
-    <!-- 3. إحصائيات الخط بالخدمة -->
+    <!-- 3. حالة خط الردم بالخدمة -->
     <div class="section-box">
-        <div class="section-header">1- حالة خط الردم الحالي (إجمالي الطول: {{ report.total_line_length }} متر)</div>
+        <div class="section-header">1- حالة خط الردم الحالي بالخدمة (إجمالي الطول المحسوب: {{ report.total_line_length }} متر)</div>
         <div class="stat-grid">
             <div class="stat-item"><span class="stat-lbl">مواسير عائمة</span><span class="stat-val text-primary">{{ report.float_pipes }}</span></div>
             <div class="stat-item"><span class="stat-lbl">ربرات عائمة</span><span class="stat-val text-primary">{{ report.float_rubbers }}</span></div>
-            <div class="stat-item"><span class="stat-lbl">طول العائم</span><span class="stat-val text-danger">{{ report.float_length }} م</span></div>
+            <div class="stat-item"><span class="stat-lbl">طوافات الخط</span><span class="stat-val text-primary">{{ report.float_pontoons }}</span></div>
+            <div class="stat-item"><span class="stat-lbl">بانتون (عدد)</span><span class="stat-val text-primary">{{ report.float_pantons }}</span></div>
 
-            <div class="stat-item border-top pt-2"><span class="stat-lbl">مواسير أرضية</span><span class="stat-val text-success">{{ report.land_pipes }}</span></div>
-            <div class="stat-item border-top pt-2"><span class="stat-lbl">ربرات أرضية</span><span class="stat-val text-success">{{ report.land_rubbers }}</span></div>
-            <div class="stat-item border-top pt-2"><span class="stat-lbl">طول الأرضي</span><span class="stat-val text-danger">{{ report.land_length }} م</span></div>
+            <div class="stat-item border-top pt-2" style="border-top: 1px solid #eee; padding-top: 8px;"><span class="stat-lbl">مواسير أرضية</span><span class="stat-val text-success">{{ report.land_pipes }}</span></div>
+            <div class="stat-item border-top pt-2" style="border-top: 1px solid #eee; padding-top: 8px;"><span class="stat-lbl">ربرات أرضية</span><span class="stat-val text-success">{{ report.land_rubbers }}</span></div>
+            <div class="stat-item border-top pt-2" style="border-top: 1px solid #eee; padding-top: 8px;"><span class="stat-lbl">طول العائم</span><span class="stat-val text-danger">{{ report.float_length }} م</span></div>
+            <div class="stat-item border-top pt-2" style="border-top: 1px solid #eee; padding-top: 8px;"><span class="stat-lbl">طول الأرضي</span><span class="stat-val text-danger">{{ report.land_length }} م</span></div>
         </div>
     </div>
 
-    <!-- 4. جرد الاستوك والمخزن العام -->
+    <!-- 4. جدول جرد الخط المتاح (الأصناف الديناميكية) -->
     <div class="section-box">
-        <div class="section-header">2- جرد الاستوك والمخزن (خارج الخدمة)</div>
+        <div class="section-header">2- بيان أرصدة المهمات الحرة المتغيرة (المتاحة بالوردية)</div>
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th>الصنف</th>
+                    <th style="width: 10%;">م</th>
+                    <th style="width: 60%; text-align: right; padding-right: 15px;">اسم الصنف والبيان الفني والمهمة</th>
+                    <th style="width: 30%;">الكمية المتاحة بالخط</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category, items in categorized_data.items %}
+                {% if category != "الاستوك" and category != "أخرى" %}
+                <tr>
+                    <td colspan="3" class="cat-title" style="background:#f4f6f8; font-weight:800; text-align:right; padding-right:15px;"> قسم: {{ category }}</td>
+                </tr>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td style="text-align: right; padding-right: 15px;">{{ item.name }}</td>
+                        <td style="color: var(--navy); font-weight: 900;">{{ item.quantity_found|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="color: #666; padding: 15px;">لا توجد أصناف متغيرة مضافة للخط حالياً.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 5. جدول الاستوك (مكانه الهندسي الجديد: بعد جرد الخط مباشرة) -->
+    <div class="section-box">
+        <div class="section-header">3- جرد الاستوك والمخزن العام للخط (المواد خارج الخدمة حالياً)</div>
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>بيان الصنف الاستوك</th>
                     <th>جديد</th>
                     <th>مستعمل صالح</th>
                     <th>هالك / خردة</th>
@@ -96,91 +126,86 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="bg-light">المواسير</td>
-                    <td>{{ report.stock_pipes_new }}</td>
-                    <td>{{ report.stock_pipes_used }}</td>
-                    <td class="text-danger">{{ report.stock_pipes_scrap }}</td>
+                    <td style="background: #fdfdfd; font-weight: bold;">المواسير الاستوك</td>
+                    <td>{{ stock.pipes_new.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td>{{ stock.pipes_used.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td style="color: red;">{{ stock.pipes_scrap.quantity_pipe|default:0|floatformat:0 }}</td>
                 </tr>
                 <tr>
-                    <td class="bg-light">الربرات</td>
-                    <td>{{ report.stock_rubbers_new }}</td>
-                    <td>{{ report.stock_rubbers_used }}</td>
-                    <td class="text-danger">{{ report.stock_rubbers_scrap }}</td>
+                    <td style="background: #fdfdfd; font-weight: bold;">الربرات الاستوك</td>
+                    <td>{{ stock.rubbers_new.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td>{{ stock.rubbers_used.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td style="color: red;">{{ stock.rubbers_scrap.quantity_pipe|default:0|floatformat:0 }}</td>
                 </tr>
                 <tr>
-                    <td class="bg-light">الطوافات</td>
-                    <td>{{ report.stock_pontoons_new }}</td>
-                    <td>{{ report.stock_pontoons_used }}</td>
-                    <td class="text-danger">{{ report.stock_pontoons_scrap }}</td>
+                    <td style="background: #fdfdfd; font-weight: bold;">الطوافات الاستوك</td>
+                    <td>{{ stock.pontoons_new.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td>{{ stock.pontoons_used.quantity_pipe|default:0|floatformat:0 }}</td>
+                    <td style="color: red;">{{ stock.pontoons_scrap.quantity_pipe|default:0|floatformat:0 }}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- 5. المهمات والأدوات + الأصناف الإضافية -->
-    <div class="row g-2 mb-3">
-        <div class="col-8">
-            <div class="section-box h-100">
-                <div class="section-header">3- جرد المهمات والأدوات</div>
-                <table class="table-custom">
-                    <tr>
-                        <th>مسامير 30</th><td>{{ report.bolts_30 }}</td>
-                        <th>مفتاح 30</th><td>{{ report.wrench_30 }}</td>
-                        <th>لقمة 30</th><td>{{ report.socket_30 }}</td>
-                    </tr>
-                    <tr>
-                        <th>مسامير 27</th><td>{{ report.bolts_27 }}</td>
-                        <th>مفتاح 27</th><td>{{ report.wrench_27 }}</td>
-                        <th>لقمة 27</th><td>{{ report.socket_27 }}</td>
-                    </tr>
-                    <tr>
-                        <th>ايرجن</th><td colspan="5">{{ report.air_gun }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="section-box h-100">
-                <div class="section-header">4- أصناف إضافية</div>
-                <div class="p-2 small">
-
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- 6. بيان الأعمال (تكملة الكود الناقص) -->
+    <!-- 4. جرد المهمات والأدوات والعدد الثابتة (المحدث بالـ 10 حقول كاملة) -->
     <div class="section-box">
-        <div class="section-header">5- بيان الأعمال اليومية والملاحظات</div>
+        <div class="section-header">3- بيان عُهدة المهمات والأدوات الفنية والعدد بالخط</div>
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>بيان العُهدة والمسامير</th><th>العدد المتاح</th>
+                    <th>بيان العُهدة والمفاتيح/اللقم</th><th>العدد المتاح</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>مسامير قطر 30 مم</td><td>{{ report.bolts_30 }}</td>
+                    <td>مفتاح عزم مقاس 30</td><td>{{ report.wrench_30 }}</td>
+                </tr>
+                <tr>
+                    <td>مسامير قطر 27 مم</td><td>{{ report.bolts_27 }}</td>
+                    <td>مفتاح عزم مقاس 27</td><td>{{ report.wrench_27 }}</td>
+                </tr>
+                <tr>
+                    <td>مسامير قطر 24 مم</td><td>{{ report.bolts_24 }}</td>
+                    <td>مفتاح / لقمة مقاس 24 مم</td><td>{{ report.wrench_24 }}</td>
+                </tr>
+                <tr>
+                    <td>لقمة مقاس 30 مم</td><td>{{ report.socket_30 }}</td>
+                    <td>لقمة مقاس 27 مم</td><td>{{ report.socket_27 }}</td>
+                </tr>
+                <tr>
+                    <td>لقمة مقاس 24 مم</td><td>{{ report.socket_24 }}</td>
+                    <td>جهاز ايرجن هواء متكامل</td><td>{{ report.air_gun }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 7. بيان الأعمال والملاحظات -->
+    <div class="section-box">
+        <div class="section-header">5- بيان الأعمال اليومية المنفذة بالخط والملاحظات الفنية</div>
         <div class="work-description-box">
-            {{ report.work_description|default:"لا توجد ملاحظات مسجلة لهذه الوردية." }}
+            {{ report.work_description|default:"لا توجد أعمال منفذة مسجلة لهذه الوردية." }}
         </div>
     </div>
 
-
-
-    <!-- التوقيعات الرسمية في نهاية الورقة -->
-    <div class="mt-5 d-flex justify-content-around text-center fw-bold" style="border-top: 2px solid #eee; pt-4;">
+    <!-- 8. التوقيعات الهندسية المكتملة المقفلة صح -->
+    <div class="footer-sig">
         <div>
-            <p>توقيع فني الخط</p>
-            <br>
-            <p>...........................</p>
+            <p style="margin:0;">فني صيانة الخط</p>
+            <div class="sig-box">التوقيع</div>
         </div>
         <div>
-            <p>مدير الموقع</p>
-            <br>
-            <p>...........................</p>
+            <p style="margin:0;">مشرف عمليات الردم</p>
+            <div class="sig-box">التوقيع</div>
         </div>
         <div>
-            <p>اعتماد الإدارة</p>
-            <br>
-            <p>...........................</p>
+            <p style="margin:0;">اعتماد مدير المشروع</p>
+            <div class="sig-box">الاعتماد والختم</div>
         </div>
     </div>
 </div>
-
-<footer class="text-center py-4 no-print text-muted small">
-    نظام إدارة المشاريع - شركة قاصد خير للمقاولات &copy; 2026
-</footer>
 
 </body>
 </html>

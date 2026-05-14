@@ -68,6 +68,8 @@ class WorkShift(models.Model):
         ('active', 'تشغيل فعلي (إنتاج)'),
         ('breakdown_mech', 'عطل ميكانيكي'),
         ('breakdown_elec', 'عطل كهربائي'),
+        ('breakdown_hydrulic','عطل هيدروليك'),
+        ('welding', 'أعمال لحام'),
         ('maintenance', 'صيانة دورية / عمرة'),
         ('anchors', 'نقل مخاطيف'),
         ('maneuver', 'مناورة / تغيير موقع'),
@@ -77,10 +79,11 @@ class WorkShift(models.Model):
         ('safety', 'توقف لأسباب تتعلق بالسلامة'),
         ('inspection', 'تفتيش / زيارة رسمية'),
         ('handover', 'استلام وتسليم وردية'),
+        ('obstruction', 'عوائق بالتربة'),
         ('other', 'توقف لأسباب أخرى'),
     ]
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="الحالة")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='other', verbose_name="الحالة")
     # ... باقي الحقول كما هي ...
 
     def clean(self):
@@ -243,15 +246,20 @@ class PipeFighterOperations(models.Model):
     stock_pontoons_used = models.IntegerField(default=0, verbose_name="طوافات مستعملة صالحة")
     stock_pontoons_scrap = models.IntegerField(default=0, verbose_name="طوافات هالك")
 
-    # 4. المهمات والأدوات
+    # 4. المهمات والأدوات والعدد (تأكد من وجود الـ 10 حقول كاملة هنا)
     bolts_30 = models.IntegerField(default=0, verbose_name="مسامير 30مم")
     bolts_27 = models.IntegerField(default=0, verbose_name="مسامير 27مم")
+    bolts_24 = models.IntegerField(default=0, verbose_name="مسامير 24مم")
+
     wrench_30 = models.IntegerField(default=0, verbose_name="مفتاح 30")
     wrench_27 = models.IntegerField(default=0, verbose_name="مفتاح 27")
+    wrench_24 = models.IntegerField(default=0, verbose_name="مفتاح 24مم")
+
     socket_30 = models.IntegerField(default=0, verbose_name="لقمة 30مم")
     socket_27 = models.IntegerField(default=0, verbose_name="لقمة 27مم")
+    socket_24 = models.IntegerField(default=0, verbose_name="لقمة 24مم")
+
     air_gun = models.IntegerField(default=0, verbose_name="ايرجن (عدد)")
-    
     # 5. قسم الأصناف الإضافية (مرونة الإضافة)
     # ده موديل فرعي هنربطه تحت، بس هنسيب هنا حقل للملاحظات العامة
     work_description = models.TextField(verbose_name="بيان الأعمال والملاحظات", blank=True, null=True)
@@ -305,21 +313,6 @@ class InventoryCategory(models.TextChoices):
 
 # في core/models.py
 
-class InventoryItem(models.Model):
-    LOCATION_CHOICES = [
-        ('site', 'مخزن الموقع (البر)'),
-        ('marine', 'مخزن البحرية (الكراكة)'),
-    ]
-    name = models.CharField(max_length=100, verbose_name="اسم الصنف")
-    category = models.CharField(max_length=50, choices=InventoryCategory.choices, verbose_name="القسم")
-    quantity = models.FloatField(default=0, verbose_name="الرصيد الحالي")
-    # تأكد من وجود هذا السطر تحديداً:
-    location = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='site', verbose_name="مكان التواجد")
-
-    def __str__(self):
-        return f"{self.name} ({self.get_location_display()})"
-
-
 
 # موديل جرد بحرية الكراكة (التقرير الأسبوعي المنفصل)
 class MarineInventoryReport(models.Model):
@@ -334,16 +327,6 @@ class MarineInventoryReport(models.Model):
     def __str__(self):
         return f"جرد بحرية بتاريخ {self.date.strftime('%Y-%m-%d')}"
 
-class MarineInventoryDetail(models.Model):
-    report = models.ForeignKey(MarineInventoryReport, on_delete=models.CASCADE, related_name='details')
-    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, verbose_name="الصنف")
-    quantity_found = models.FloatField(verbose_name="الكمية الموجودة فعلياً")
-
-    def save(self, *args, **kwargs):
-        # تحديث "الرصيد الحالي" في المخزن الرئيسي أوتوماتيكياً عند حفظ الجرد
-        self.item.quantity = self.quantity_found
-        self.item.save()
-        super().save(*args, **kwargs)
 
 
 class AdminVault(models.Model):
@@ -377,7 +360,7 @@ class PipeFighterExtraItem(models.Model):
     report = models.ForeignKey(PipeFighterOperations, on_delete=models.CASCADE, related_name='extra_items')
     item_name = models.CharField(max_length=100, verbose_name="اسم الصنف الإضافي")
     quantity = models.IntegerField(default=0, verbose_name="العدد / الكمية")
-    
+
 
     class Meta:
         verbose_name = "صنف إضافي"
@@ -444,49 +427,38 @@ class FuelMovement(models.Model):
 # 1. جدول الأقسام (تنشئه من الأدمين براحتك)
 class InventoryCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name="اسم القسم")
-    
+
     def __str__(self):
         return self.name
     class Meta: verbose_name = "قسم مخزني"; verbose_name_plural = "الأقسام"
-
-# 2. جدول الأصناف (الأساسي)
-class InventoryItem(models.Model):
-    category = models.ForeignKey(InventoryCategory, on_delete=models.CASCADE, related_name='items', verbose_name="القسم")
-    name = models.CharField(max_length=100, verbose_name="اسم الصنف")
-    quantity = models.FloatField(default=0, verbose_name="الرصيد الحالي")
-
-    def __str__(self):
-        return f"{self.name} ({self.category.name})"
-
-# 1. مخزن البر (الموقع) - ثابت للأرصدة
-class InventoryItem(models.Model):
-    # الخيارات الجديدة للتوزيع
-    ASSIGNMENT_CHOICES = [
-        ('site', 'مخزن البر (الموقع)'),
-        ('marine', 'جرد الكراكة (البحرية)'),
-        ('pipe', 'تقرير الخط (البايب فيتر)'),
-        ('all', 'يظهر في جميع الأقسام'),
-    ]
-
-    name = models.CharField(max_length=100, verbose_name="اسم الصنف")
-    # هنخلي القسم "نص" عشان تكتب اللي إنت عايزه (إضافة قسم يدوي)
-    category = models.CharField(max_length=100, verbose_name="القسم (مثلاً: حبال، مواسير، عدد)")
-    # الحقل الجديد للتوزيع
-    assign_to = models.CharField(max_length=10, choices=ASSIGNMENT_CHOICES, default='site', verbose_name="مكان الظهور")
-    quantity = models.FloatField(default=0, verbose_name="الرصيد الحالي")
-
-    def __str__(self):
-        return f"{self.name} - {self.category}"
 
 
 class MarineInventoryReport(models.Model):
     # السطرين دول أهم حاجة للفصل
     REPORT_TYPES = [('marine', 'جرد كراكة'), ('site', 'جرد موقع')]
     report_type = models.CharField(max_length=10, choices=REPORT_TYPES, default='marine', verbose_name="نوع الجرد")
-    
+
     date = models.DateTimeField(auto_now_add=True)
     operator = models.ForeignKey('Staff', on_delete=models.CASCADE)
     notes = models.TextField(blank=True, null=True)
+
+class InventoryItem(models.Model):
+    name = models.CharField(max_length=100, verbose_name="اسم الصنف")
+    category = models.CharField(max_length=100, verbose_name="القسم (مثلاً: حبال، مواسير، عدد)")
+
+    # --- خانات الاختيار المتعدد الجديدة ---
+    show_in_site = models.BooleanField(default=True, verbose_name="يظهر في مخزن البر (الموقع)")
+    show_in_marine = models.BooleanField(default=False, verbose_name="يظهر في جرد الكراكة (البحرية)")
+    show_in_pipe = models.BooleanField(default=False, verbose_name="يظهر في تقرير الخط (البايب فيتر)")
+
+    # الأرصدة الثلاثة المستقلة (المعزولة تماماً)
+    quantity_site = models.FloatField(default=0, verbose_name="رصيد مخزن البر الحالي")
+    quantity_marine = models.FloatField(default=0, verbose_name="رصيد بحرية الكراكة الحالي")
+    quantity_pipe = models.FloatField(default=0, verbose_name="رصيد البايب فيتر الحالي")
+
+    def __str__(self):
+        return f"{self.name} - {self.category}"
+
 
 
 class MarineInventoryDetail(models.Model):
@@ -502,4 +474,4 @@ class InventoryTransaction(models.Model):
     type = models.CharField(max_length=20) # وارد، مستخدم، هالك
     date = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(max_length=255, blank=True)
-    
+

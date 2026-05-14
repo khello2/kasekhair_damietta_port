@@ -359,7 +359,7 @@
 
             <!-- المحتوى العام للمشروع (خارج حلقة الكراكات) -->
             <div class="container mt-4">
-                <img src="{% static 'images/project.jpg' %}" class="project-banner shadow mb-5">
+                <img src="{% static 'images/project.jpeg' %}" class="project-banner shadow mb-5">
                 <div class="cards-grid">
                     <div class="card-item">
                         <i class="fas fa-screwdriver-wrench"></i>
@@ -371,9 +371,7 @@
                         <i class="fas fa-warehouse text-warning"></i>
                         <!-- في كارت INVENTORY -->
                     <h5 class="fw-bold">INVENTORY</h5>
-                    <a href="{% url 'land_inventory' %}" class="btn-go" style="background:var(--navy); border:none; width:100%; display:block; text-align:center;">
-                        <i class="fas fa-edit me-1 text-gold"></i> تسجيل جرد مخزن البر
-                    </a>
+                        <a href="{% url 'land_inventory' %}" class="btn-go" style="background:var(--navy);">جرد البر</a>
 
                         <a href="{% url 'site_inventory_view' %}" class="btn btn-outline-primary shadow-sm ms-2">
                             <i class="fas fa-print me-1"></i> طباعة كشف جرد المخزن

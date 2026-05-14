@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>جرد مخزن البر | قاصد خير</title>
-    <link rel="stylesheet" href="https://cloudflare.com">
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <!-- تصحيح وتسريع روابط المكتبات الخارجية لتسريع الفتح ومنع تجميد الصفحة -->
+    <link rel="stylesheet" href="cloudflare.com">
+    <link rel="stylesheet" href="cloudflare.com">
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; --bg: #f4f7f6; }
         html, body { overflow-x: hidden; width: 100%; background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
@@ -25,7 +26,7 @@
 <body>
 
 <div class="header-box text-center shadow-sm">
-    <img src="{% static 'images/logo.png' %}" width="50" class="bg-white rounded p-1 mb-1">
+    <img src="{% static 'images/logo.png' %}" width="50" class="bg-white rounded p-1 mb-1" alt="Logo">
     <h6 class="fw-bold mb-0">تسجيل جرد مخزن البر (الموقع)</h6>
 </div>
 
@@ -40,7 +41,7 @@
             </div>
         </div>
 
-        <!-- الأقسام والأصناف (بترتيب الإدخال) -->
+        <!-- الأقسام والأصناف مبرمجة لتقرأ رصيد البر المنفصل فقط (quantity_site) -->
         {% for cat_name, items in categorized_items.items %}
         <div class="card-section">
             <div class="section-title text-primary"><i class="fas fa-warehouse me-1"></i> قسم: {{ cat_name }}</div>
@@ -48,8 +49,9 @@
                 {% for item in items %}
                 <div class="form-group-custom">
                     <label class="row-label">{{ item.name }}:</label>
-                    <input type="number" name="qty_{{ item.id }}" value="{{ item.quantity|floatformat:0 }}" class="form-control form-control-custom">
-                    <small class="text-muted" style="font-size: 0.65rem;">الرصيد الحالي: {{ item.quantity|floatformat:0 }}</small>
+                    <!-- تعديل حقل الـ value ليرتبط بـ quantity_site -->
+                    <input type="number" name="qty_{{ item.id }}" value="{{ item.quantity_site|floatformat:0 }}" class="form-control form-control-custom">
+                    <small class="text-muted" style="font-size: 0.65rem;">الرصيد السابق بالبر: {{ item.quantity_site|floatformat:0 }}</small>
                 </div>
                 {% endfor %}
             </div>

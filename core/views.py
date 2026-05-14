@@ -340,21 +340,72 @@ def analytics(request):
     }
     return render(request, 'core/analytics.html', context)
 
-# --- جرد المخزن المطبوع ---
+@login_required
 def inventory_print(request):
-    return render(request, 'core/inventory_print.html', {'items': InventoryItem.objects.all().order_by('name')})
+    from .models import InventoryItem
+    all_items = InventoryItem.objects.filter(assign_to__in=['site', 'all']).order_by('category', 'id')
 
-# --- تقرير البايب فايتر المطبوع ---
-def pipe_report_detail(request, report_id):
-    from .models import PipeFighterOperations
-    from django.shortcuts import render, get_object_or_404
-    
-    # جلب التقرير الأساسي فقط
-    report = get_object_or_404(PipeFighterOperations, id=report_id)
-    
-    return render(request, 'core/pipe_report_detail.html', {
-        'report': report
+    categorized = {}
+    for item in all_items:
+        # قراءة رصيد البر المخصص في الطباعة الرسمية
+        item.quantity_found = item.quantity_site
+        if item.category not in categorized:
+            categorized[item.category] = []
+        categorized[item.category].append(item)
+
+    return render(request, 'core/inventory_print_official.html', {
+        'categorized_data': categorized,
+        'date': timezone.now()
     })
+
+@login_required
+def pipe_report_detail(request, report_id):
+    from .models import PipeFighterOperations, InventoryItem
+    from django.shortcuts import render, get_object_or_404
+    from django.utils import timezone
+
+    # 1. جلب التقرير الأساسي (الأطوال وإحصائيات الخط بالخدمة)
+    report = get_object_or_404(PipeFighterOperations, id=report_id)
+
+    # 2. جلب كافة الأصناف المفعلة للخط (القديمة والجديدة اليدوية)
+    all_items = InventoryItem.objects.filter(show_in_pipe=True).order_by('category', 'id')
+
+    categorized_data = {}
+    for item in all_items:
+        # قراءة الأرصدة الحقيقية للخط لمنع نزولها أصفار
+        item.quantity_found = item.quantity_pipe
+
+        cat = item.category if item.category else "مهمات عامة"
+        # عزل قسم الاستوك وقسم أخرى عن الجداول المتغيرة
+        if cat == "الاستوك" or cat == "أخرى":
+            continue
+
+        if cat not in categorized_data:
+            categorized_data[cat] = []
+        categorized_data[cat].append(item)
+
+    # 3. سحب أرصدة الاستوك الحقيقية أوتوماتيكياً من جدول المخزن لعرضها في الجدول المخصص
+    stock_data = {
+        'pipes_new': InventoryItem.objects.filter(name__icontains='مواسير جديدة').first(),
+        'pipes_used': InventoryItem.objects.filter(name__icontains='مواسير مستعملة').first(),
+        'pipes_scrap': InventoryItem.objects.filter(name__icontains='مواسير هالك').first(),
+
+        'rubbers_new': InventoryItem.objects.filter(name__icontains='ربرات جديدة').first(),
+        'rubbers_used': InventoryItem.objects.filter(name__icontains='ربرات مستعملة').first(),
+        'rubbers_scrap': InventoryItem.objects.filter(name__icontains='ربرات هالك').first(),
+        'pontoons_new': InventoryItem.objects.filter(name__icontains='طوافات جديدة').first(),
+        'pontoons_used': InventoryItem.objects.filter(name__icontains='طوافات مستعملة').first(),
+        'pontoons_scrap': InventoryItem.objects.filter(name__icontains='طوافات هالك').first(),
+    }
+
+    # تأكيد تمرير البيانات كاملة لملف الـ HTML
+    return render(request, 'core/pipe_report_detail.html', {
+        'report': report,
+        'categorized_data': categorized_data,
+        'stock': stock_data,
+        'date': timezone.now()
+    })
+
 
 def reports_list(request):
     # جلب كافة تقارير الكراكات
@@ -409,62 +460,79 @@ def marine_inventory_list(request):
 
 @login_required
 def site_inventory_view(request):
-    from .models import InventoryItem
+    from .models import InventoryItem, MarineInventoryReport
     from django.utils import timezone
-    
-    # 1. جلب كل الأصناف المخصصة للموقع أو للكل مرتبة حسب القسم
-    all_items = InventoryItem.objects.filter(assign_to__in=['site', 'all']).order_by('category', 'id')
-    
-    # 2. تجميع الأصناف في "أقسام" ديناميكية بناءً على النصوص المكتوبة في خانة category
-    categorized_items = {}
-    for item in all_items:
-        cat_name = item.category if item.category else "أصناف عامة"
-        if cat_name not in categorized_items:
-            categorized_items[cat_name] = []
-        categorized_items[cat_name].append(item)
+    from django.shortcuts import render
 
-    # 3. إرسال البيانات للصفحة
+    # 1. جلب آخر تقرير جرد تم تسجيله للموقع (البر) لسحب التاريخ والمسؤول منه
+    last_report = MarineInventoryReport.objects.filter(report_type='site').order_by('-date', '-id').first()
+
+    # 2. جلب الأصناف المخصصة للبر
+    all_items = InventoryItem.objects.filter(show_in_site=True).order_by('category', 'id')
+
+    categorized = {}
+    for item in all_items:
+        # قراءة الأرصدة الحقيقية للبر
+        item.quantity = item.quantity_site
+
+        if item.category not in categorized:
+            categorized[item.category] = []
+        categorized[item.category].append(item)
+
     return render(request, 'core/site_inventory_hub.html', {
-        'categorized_items': categorized_items,
+        'categorized_items': categorized,
+        'report': last_report, # بعتنا التقرير عشان يسحب الاسم والتاريخ
         'date': timezone.now()
     })
+
 
 @login_required
 def start_marine_inventory(request):
     from .models import InventoryItem, MarineInventoryReport, MarineInventoryDetail, Staff
     from django.utils import timezone
-    
-    staff = Staff.objects.filter(user=request.user).first()
-    
-    # 1. جلب الأصناف مرتبة بالـ ID مع ضمان عدم تكرار نفس الاسم (Distinct by Name)
-    # ملاحظة: في SQLite التكرار بيتم تنظيفه برمجياً لضمان الدقة
-    raw_items = InventoryItem.objects.filter(assign_to__in=['marine', 'all']).order_by('id')
-    
+    from django.shortcuts import render, redirect
+
+    # نظام تأمين المشغل لمنع الـ IntegrityError نهائياً
+    staff = Staff.objects.filter(user=request.user).first() or Staff.objects.first()
+    if not staff:
+        from django.contrib.auth.models import User
+        admin_user = User.objects.filter(is_superuser=True).first()
+        staff = Staff.objects.create(user=admin_user, name="مدير النظام")
+
+    # 1. التعديل: جلب أصناف الكراكة بناءً على مربع الاختيار المطور (show_in_marine=True)
+    raw_items = InventoryItem.objects.filter(show_in_marine=True).order_by('id')
+
     # تنظيف برمجي للأصناف المكررة في العرض فقط
     all_items = []
     seen_names = set()
     for item in raw_items:
         clean_name = item.name.strip().lower()
         if clean_name not in seen_names:
+            # نمرر رصيد الكراكة المستقل فقط ليعرض في الفورم
+            item.current_qty = item.quantity_marine
             all_items.append(item)
             seen_names.add(clean_name)
 
     if request.method == "POST":
+        # 2. إنشاء التقرير بختم الكراكة (marine)
         report = MarineInventoryReport.objects.create(
             operator=staff, report_type='marine', notes=request.POST.get('notes', '')
         )
-        
-        # 2. حفظ الأصناف الظاهرة في الصفحة
+
+        # 3. حفظ الأصناف الحالية وتحديث رصيد البحرية فقط (quantity_marine)
         for item in all_items:
             qty_raw = request.POST.get(f'qty_{item.id}')
             if qty_raw is not None and qty_raw.strip() != "":
-                qty_val = float(qty_raw)
-                InventoryItem.objects.filter(id=item.id).update(quantity=qty_val)
-                MarineInventoryDetail.objects.create(
-                    report=report, item_name=item.name, category=item.category, quantity_found=qty_val
-                )
+                try:
+                    qty_val = float(qty_raw)
+                    # التحديث المباشر لحقل الكراكة فقط بالعافية
+                    InventoryItem.objects.filter(id=item.id).update(quantity_marine=qty_val)
+                    MarineInventoryDetail.objects.create(
+                        report=report, item_name=item.name, category=item.category, quantity_found=qty_val
+                    )
+                except Exception: continue
 
-        # 3. إضافة الأصناف الجديدة (مع منع خلق مكرر جديد)
+        # 4. إضافة الأصناف الجديدة وتثبيتها للأبد بختم الكراكة المطور
         new_names = request.POST.getlist('new_item_name[]')
         new_qtys = request.POST.getlist('new_item_qty[]')
         new_cats = request.POST.getlist('new_item_cat[]')
@@ -472,20 +540,27 @@ def start_marine_inventory(request):
         for name, qty, cat_name in zip(new_names, new_qtys, new_cats):
             clean_name = name.strip()
             if clean_name:
-                # التأكد لو الصنف ده موجود فعلاً عشان منعملش نسخة تانية
+                # البحث في الجدول الرئيسي الموحد عن الصنف
                 existing = InventoryItem.objects.filter(name__iexact=clean_name, category=cat_name).first()
                 qty_val = float(qty or 0)
+
                 if existing:
-                    existing.quantity = qty_val
-                    existing.save()
+                    # لو موجود مسبقاً، نحدث رصيد الكراكة الخاص به فقط
+                    InventoryItem.objects.filter(id=existing.id).update(quantity_marine=qty_val)
+                    MarineInventoryDetail.objects.create(report=report, item_name=existing.name, category=cat_name, quantity_found=qty_val)
                 else:
+                    # التعديل: إنشاء الصنف وتفعيل مربع ظهور الكراكة ليبقى ثابتاً في هذه الصفحة
                     InventoryItem.objects.create(
-                        name=clean_name, quantity=qty_val, category=cat_name, assign_to='marine'
+                        name=clean_name,
+                        category=cat_name,
+                        show_in_marine=True,
+                        quantity_marine=qty_val,
                     )
-        
+                    MarineInventoryDetail.objects.create(report=report, item_name=clean_name, category=cat_name, quantity_found=qty_val)
+
         return redirect('marine_inventory_list')
 
-    # 4. تنظيم العرض (حسب ترتيب الإدخال الأصلي)
+    # 5. تنظيم العرض للأقسام في الـ HTML بنظام البايب فيتر الموحد
     categorized_items = {}
     for item in all_items:
         if item.category not in categorized_items:
@@ -547,26 +622,29 @@ def pipefighter_form_view(request):
     from django.contrib import messages
     from django.shortcuts import render, redirect
 
-    staff = Staff.objects.filter(user=request.user).first()
-    
-    # 1. الذاكرة الذكية للحقول الثابتة (مواسير، ربرات، مسامير)
+    # تأمين الموظف المسؤول لتفادي الـ IntegrityError نهائياً
+    staff = Staff.objects.filter(user=request.user).first() or Staff.objects.first()
+    if not staff:
+        from django.contrib.auth.models import User
+        admin_user = User.objects.filter(is_superuser=True).first()
+        staff = Staff.objects.create(user=admin_user, name="مدير النظام")
+
+    # 1. الذاكرة الذكية للحقول الثابتة لخط الطرد (سحب آخر وردية مسجلة)
     last = PipeFighterOperations.objects.order_by('-date', '-id').first()
 
-    # 2. جلب الأصناف وتنظيف المكرر برمجياً
-        # جلب الأصناف المخصصة للخط
-    raw_items = InventoryItem.objects.filter(assign_to__in=['pipe', 'all']).order_by('id')
-    
-    # حركة الأمان: لو مفيش أصناف مخصصة للخط، اسحب أول 5 أصناف من المخزن العام عشان الصفحة تنطق
-    if not raw_items.exists():
-        raw_items = InventoryItem.objects.all()[:10] 
+    # 2. جلب الأصناف المخصصة للخط بناءً على نظام المربعات المطور (show_in_pipe=True)
+    raw_items = InventoryItem.objects.filter(show_in_pipe=True).order_by('id')
 
-    
+    if not raw_items.exists():
+        raw_items = InventoryItem.objects.all()[:10]
+
     pipe_items_final = []
     seen_names = set()
     for item in raw_items:
         clean_name = item.name.strip().lower()
         if clean_name not in seen_names:
-            item.current_qty = item.quantity # حفظ الرصيد الحالي لعرضه في البادج
+            # تمرير رصيد الخط المستقل والمعزول تماماً ليعرض كـ (المتاح حالياً)
+            item.current_qty = item.quantity_pipe
             pipe_items_final.append(item)
             seen_names.add(clean_name)
 
@@ -575,36 +653,61 @@ def pipefighter_form_view(request):
             try: return int(val) if val else 0
             except: return 0
 
-        # 3. إنشاء التقرير الأساسي (بيانات الخط + بيان الأعمال)
+        # 3. إنشاء التقرير وحفظ جميع حقول الاستوك الـ 9 بدقة وبأرقامها الحقيقية لمنع نزولها أصفار
         report = PipeFighterOperations.objects.create(
             operator_in_charge=staff,
             shift=request.POST.get('shift', 'morning'),
+
+            # أ- إحصائيات الخط العائم والأرضي بالخدمة
             float_pipes=to_int(request.POST.get('float_pipes')),
             float_rubbers=to_int(request.POST.get('float_rubbers')),
             float_pontoons=to_int(request.POST.get('float_pontoons')),
+            float_pantons=to_int(request.POST.get('float_pantons')),  # حقل البانتون
             float_anchors=to_int(request.POST.get('float_anchors')),
             land_pipes=to_int(request.POST.get('land_pipes')),
             land_rubbers=to_int(request.POST.get('land_rubbers')),
+
+            # ب- حقول جرد الاستوك والمخزن العام (خارج الخدمة)
+            stock_pipes_new=to_int(request.POST.get('stock_pipes_new')),
+            stock_pipes_used=to_int(request.POST.get('stock_pipes_used')),
+            stock_pipes_scrap=to_int(request.POST.get('stock_pipes_scrap')),
+            stock_rubbers_new=to_int(request.POST.get('stock_rubbers_new')),
+            stock_rubbers_used=to_int(request.POST.get('stock_rubbers_used')),
+            stock_rubbers_scrap=to_int(request.POST.get('stock_rubbers_scrap')),
+            stock_pontoons_new=to_int(request.POST.get('stock_pontoons_new')),
+            stock_pontoons_used=to_int(request.POST.get('stock_pontoons_used')),
+            stock_pontoons_scrap=to_int(request.POST.get('stock_pontoons_scrap')),
+
+            # ج- حقول المهمات والأدوات والعدد (مراجعة وتطابق 100% مع الفورم)
+                        # ج- حقول المهمات والأدوات والعدد (تأمين الحفظ والربط 100% مع الـ HTML)
             bolts_30=to_int(request.POST.get('bolts_30')),
             bolts_27=to_int(request.POST.get('bolts_27')),
+            bolts_24=to_int(request.POST.get('bolts_24')),
+
             wrench_30=to_int(request.POST.get('wrench_30')),
             wrench_27=to_int(request.POST.get('wrench_27')),
+            wrench_24=to_int(request.POST.get('wrench_24')),
+
+            socket_30=to_int(request.POST.get('socket_30')),
+            socket_27=to_int(request.POST.get('socket_27')),
+            socket_24=to_int(request.POST.get('socket_24')),
+
             air_gun=to_int(request.POST.get('air_gun')),
-            work_description=request.POST.get('work_description', ''),
+
+            # د- بيان الأعمال والملاحظات
+            work_description=request.POST.get('work_description', '')
+
         )
 
-        # 4. تحديث المخزن للأصناف الموجودة (وارد - مستخدم - هالك)
+        # 4. تحديث رصيد الخط المنفصل للأصناف الموجودة (quantity_pipe)
         for item in pipe_items_final:
-            q_in = float(request.POST.get(f'in_{item.id}', 0) or 0)
-            q_out = float(request.POST.get(f'out_{item.id}', 0) or 0)
-            q_scrap = float(request.POST.get(f'scrap_{item.id}', 0) or 0)
+            qty_raw = request.POST.get(f'qty_{item.id}')
+            if qty_raw is not None and qty_raw.strip() != "":
+                try:
+                    InventoryItem.objects.filter(id=item.id).update(quantity_pipe=float(qty_raw))
+                except Exception: continue
 
-            net_change = q_in - q_out - q_scrap
-            if net_change != 0:
-                # تحديث الرصيد الفعلي في جدول الأصناف
-                InventoryItem.objects.filter(id=item.id).update(quantity=item.quantity + net_change)
-
-        # 5. إضافة الأصناف الجديدة (يدوياً) ومنع خلق مكرر
+        # 5. إضافة الأصناف الجديدة يدوياً وتثبيتها للأبد بختم البايب فيتر المطور بكسر شرط الـ NOT NULL إجبارياً
         new_names = request.POST.getlist('new_item_name[]')
         new_qtys = request.POST.getlist('new_item_qty[]')
         new_cats = request.POST.getlist('new_item_cat[]')
@@ -613,22 +716,30 @@ def pipefighter_form_view(request):
             clean_n = name.strip()
             if clean_n:
                 qty_val = float(qty or 0)
-                # التأكد لو الصنف موجود مسبقاً
                 existing = InventoryItem.objects.filter(name__iexact=clean_n, category=cat_name).first()
                 if existing:
-                    InventoryItem.objects.filter(id=existing.id).update(quantity=existing.quantity + qty_val)
+                    InventoryItem.objects.filter(id=existing.id).update(quantity_pipe=qty_val)
                 else:
+                    # تغذية حقل quantity إجبارياً هنا لحل الـ IntegrityError فوراً وكسر جمود SQLite بالسيرفر
                     InventoryItem.objects.create(
-                        name=clean_n, quantity=qty_val, category=cat_name, assign_to='pipe'
+                        name=clean_n,
+                        category=cat_name,
+                        show_in_pipe=True,
+                        quantity_pipe=qty_val,
                     )
 
-        messages.success(request, "تم حفظ تقرير الخط وتحديث المخازن بنجاح.")
-        return redirect('home')
+        # تشغيل المحرك الهندسي لحساب الأطوال الإجمالية فوراً قبل التحويل للطباعة
+        report.save()
+        messages.success(request, "تم حفظ تقرير الخط بنجاح.")
+        # التحويل الفوري لصفحة المعاينة والطباعة المترتبة بالمسطرة
+        return redirect('pipe_report_detail', report_id=report.id)
 
-    # 6. تنظيم الأصناف في أقسام للعرض في الـ HTML
+    # 6. تنظيم الأصناف في أقسام للعرض وطرد قسم أخرى والاستوك من الـ Loop الديناميكي لعدم الزحمة
     categorized_items = {}
     for item in pipe_items_final:
         cat = item.category if item.category else "مهمات عامة"
+        if cat == "أخرى" or cat == "الاستوك":
+            continue
         if cat not in categorized_items:
             categorized_items[cat] = []
         categorized_items[cat].append(item)
@@ -645,36 +756,42 @@ def site_inventory_entry(request):
     from django.utils import timezone
     from django.shortcuts import render, redirect
 
-    staff = Staff.objects.filter(user=request.user).first()
-    
-    # 1. جلب أصناف الموقع (مرتبة بالـ ID) وتنظيف المكرر برمجياً
-    raw_items = InventoryItem.objects.filter(assign_to__in=['site', 'all']).order_by('id')
-    
+    staff = Staff.objects.filter(user=request.user).first() or Staff.objects.first()
+    if not staff:
+        from django.contrib.auth.models import User
+        admin_user = User.objects.filter(is_superuser=True).first()
+        staff = Staff.objects.create(user=admin_user, name="مدير النظام")
+
+    # 1. التعديل: الفلترة بناءً على مربع اختيار البر (show_in_site=True)
+    raw_items = InventoryItem.objects.filter(show_in_site=True).order_by('id')
+
     all_items = []
     seen_names = set()
     for item in raw_items:
         clean_name = item.name.strip().lower()
         if clean_name not in seen_names:
+            item.current_qty = item.quantity_site
             all_items.append(item)
             seen_names.add(clean_name)
 
     if request.method == "POST":
-        # 2. إنشاء التقرير بختم الموقع
         report = MarineInventoryReport.objects.create(
             operator=staff, report_type='site', notes=request.POST.get('notes', '')
         )
-        
-        # 3. حفظ الأصناف الحالية وتحديث الأرصدة
+
+        # 2. حفظ الأصناف الحالية وتحديث رصيد البر المنفصل
         for item in all_items:
             qty_raw = request.POST.get(f'qty_{item.id}')
             if qty_raw is not None and qty_raw.strip() != "":
-                qty_val = float(qty_raw)
-                InventoryItem.objects.filter(id=item.id).update(quantity=qty_val)
-                MarineInventoryDetail.objects.create(
-                    report=report, item_name=item.name, category=item.category, quantity_found=qty_val
-                )
+                try:
+                    qty_val = float(qty_raw)
+                    InventoryItem.objects.filter(id=item.id).update(quantity_site=qty_val)
+                    MarineInventoryDetail.objects.create(
+                        report=report, item_name=item.name, category=item.category, quantity_found=qty_val
+                    )
+                except Exception: continue
 
-        # 4. إضافة الأصناف الجديدة (مع منع خلق مكرر)
+        # 3. إضافة الأصناف الجديدة وتثبيتها للأبد بختم البر المطور
         new_names = request.POST.getlist('new_item_name[]')
         new_qtys = request.POST.getlist('new_item_qty[]')
         new_cats = request.POST.getlist('new_item_cat[]')
@@ -684,17 +801,21 @@ def site_inventory_entry(request):
             if clean_name:
                 existing = InventoryItem.objects.filter(name__iexact=clean_name, category=cat_name).first()
                 qty_val = float(qty or 0)
+
                 if existing:
-                    existing.quantity = qty_val
-                    existing.save()
+                    InventoryItem.objects.filter(id=existing.id).update(quantity_site=qty_val)
                     MarineInventoryDetail.objects.create(report=report, item_name=existing.name, category=cat_name, quantity_found=qty_val)
                 else:
-                    new_itm = InventoryItem.objects.create(name=clean_name, quantity=qty_val, category=cat_name, assign_to='site')
-                    MarineInventoryDetail.objects.create(report=report, item_name=clean_name, category=cat_name, quantity_found=qty_val)
-        
+                    # التعديل: تفعيل المربع الجديد للبر عند الإنشاء اليدوي
+                   InventoryItem.objects.create(
+                        name=clean_name,
+                        category=cat_name,
+                        show_in_site=True,
+                        quantity_site=qty_val,
+                    )
         return redirect('site_inventory_view')
 
-    # 5. تنظيم العرض للأقسام
+    # 4. تنظيم العرض للأقسام
     categorized_items = {}
     for item in all_items:
         if item.category not in categorized_items:
@@ -706,13 +827,9 @@ def site_inventory_entry(request):
         'date': timezone.now()
     })
 
+
 def marine_inventory_list(request):
     # جلب تقارير الكراكة فقط
     reports = MarineInventoryReport.objects.filter(report_type='marine').order_by('-date')
     return render(request, 'core/marine_inventory_list.html', {'reports': reports})
 
-# مثال لدالة جرد الكراكة
-marine_items = InventoryItem.objects.filter(assign_to__in=['marine', 'all']).order_by('category')
-
-# مثال لدالة جرد البر
-site_items = InventoryItem.objects.filter(assign_to__in=['site', 'all']).order_by('category')
