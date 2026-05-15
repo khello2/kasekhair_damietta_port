@@ -108,18 +108,62 @@
         <p class="text-muted small mb-0" style="font-size: 0.85rem; font-weight: 600;">Eastern Barrier Reclamation Project - Damietta Port</p>
     </div>
 
-    <!-- الشريط الإخباري (نهاية القطاع الأبيض للموقع) -->
+    <!-- 3. الشريط الإخباري الفابريكا النهائي (انسياب عكسي من اليسار لليمين) -->
     {% if news %}
     <div class="news-ticker-container no-print">
-        <div class="ticker-label"><i class="fas fa-bullhorn me-1"></i> تنبيهات حركة العمل</div>
-        <marquee behavior="scroll" direction="right" onmouseover="this.stop();" onmouseout="this.start();">
-            {% for item in news %}
-                <span class="ticker-item">{{ item.message }}</span>
-                <span class="ticker-separator"> ★ </span>
-            {% endfor %}
-        </marquee>
+        <!-- اليافطة الكحلي ثابتة ومحكومة على اليمين لراحة العين -->
+        <div class="ticker-label"><i class="fas fa-bullhorn me-1"></i> تنبيهات العمل</div>
+        <div class="ticker-content-wrapper">
+            <div class="ticker-moving-track">
+                <!-- تكرار التنبيهات مرتين متتاليين لضمان اتصال الجمل بدون فراغات بيضاء -->
+                {% for item in news %}
+                    <span class="ticker-item">{{ item.message }}</span>
+                    <span class="ticker-separator"> ★ </span>
+                {% endfor %}
+                {% for item in news %}
+                    <span class="ticker-item">{{ item.message }}</span>
+                    <span class="ticker-separator"> ★ </span>
+                {% endfor %}
+            </div>
+        </div>
     </div>
+
+    <!-- الهندسة الفنية النهائية للتحريك المعكوس الانسيابي -->
+    <style>
+        .news-ticker-container { background: #fdf7e3; border-bottom: 3px solid var(--gold); height: 45px; display: flex; align-items: center; overflow: hidden; position: relative; width: 100%; direction: rtl !important; }
+        
+        /* يافطة التنبيهات ثابتة على اليمين تماماً */
+        .ticker-label { background: var(--navy); color: var(--gold); padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: bold; font-size: 0.85rem; z-index: 10; white-space: nowrap; order: 1; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        
+        /* مجرى انسياب الكلام مقيد على يسار اليافطة */
+        .ticker-content-wrapper { overflow: hidden; height: 100%; display: flex; align-items: center; position: relative; flex: 1; order: 2; direction: ltr !important; }
+        
+        /* محرك الحركة المتصلة المعكوسة: جعل الجمل تنساب من اليسار وتجري لليمين بنعومة فائقة */
+        .ticker-moving-track { 
+            display: flex; 
+            white-space: nowrap; 
+            padding-left: 100%; 
+            animation: kasedTickerFinalLeftToRight 25s linear infinite; 
+            width: max-content;
+            direction: ltr !important;
+        }
+        
+        /* الحفاظ على الكلمات لغة عربية سليمة ومفهومة بدون قلب الحروف */
+        .ticker-item { color: #1a2a3a; font-weight: 700; font-size: 0.95rem; display: inline-block; direction: rtl !important; }
+        .ticker-separator { color: var(--gold); padding: 0 25px; font-weight: bold; }
+
+        /* تثبيت النص عند وضع صباعك للقراءة على الموبايل */
+        .ticker-content-wrapper:hover .ticker-moving-track { animation-play-state: paused; cursor: pointer; }
+
+        /* الأنميشن الهندسي الدقيق للتدفق العكسي المتصل */
+        @keyframes kasedTickerFinalLeftToRight {
+            0% { transform: translate3d(-50%, 0, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+    </style>
     {% endif %}
+
+
 
     <!-- 4. شريط الحالة الحي للكراكات (تنسيق عربي RTL متناسق بالكامل باللون الكحلي الفخم) -->
     <div class="live-status-container">
@@ -145,11 +189,14 @@
                             <div style="width: 55% !important; text-align: right; direction: rtl !important;">
                                 <div class="d-flex flex-column gap-2 mt-2">
                                     <h3 class="mb-0 fw-bold text-white" style="font-size: 1.3rem; letter-spacing: 0.5px;">{{ d.name }}</h3>
-
-                                    <div class="d-flex align-items-center gap-2 mb-1" style="display: flex !important; flex-direction: row !important;">
-                                        <div class="status-dot-animated" style="width: 9px !important; height: 9px !important; border-radius: 50% !important; display: inline-block !important; flex-shrink: 0; background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %}; margin-left: 8px;"></div>
+                                    <!-- 🏗️ التعديل الصحيح: نقل النقطة النابضة لتظهر في نهاية السطر على اليسار بعد نص الحالة الفنية -->
+                                    <div class="d-flex align-items-center gap-1 mb-1" style="display: flex !important; flex-direction: row !important; margin-top: 4px;">
+                                        <!-- 1. نص الحالة الفنية يظهر أولاً على اليمين -->
                                         <span style="color: #fff; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">{{ d.status_text }}</span>
+                                        <!-- 2. النقطة النابضة تتبع النص وتظهر على يساره فوراً بمسافة شياكة -->
+                                        <div class="status-dot-animated" style="width: 10px !important; height: 10px !important; border-radius: 50% !important; display: inline-block !important; flex-shrink: 0; background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %}; margin-right: 8px; margin-left: 0;"></div>
                                     </div>
+
 
                                     <div class="d-flex flex-column gap-2 mt-1">
                                         <a href="tel:{{ d.vessel_phone }}" class="text-decoration-none d-flex align-items-center gap-2" style="width:fit-content;">
@@ -225,15 +272,7 @@
         <img src="{% static 'images/project.jpeg' %}" class="project-banner shadow mb-4" alt="Project Banner">
         
         <div class="cards-grid">
-            <!-- 1. كارت السولار والمحروقات العام للشركة -->
-            <div class="card-item" style="border-top: 5px solid #dc3545;">
-                <i class="fas fa-gas-pump text-danger"></i>
-                <h5 class="fw-bold">FUEL MONITOR</h5>
-                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي</p>
-                <a href="{% url 'fuel_report' %}" class="btn-go" style="background:#dc3545;">فتح ميزان السولار</a>
-            </div>
-
-            <!-- 2. كارت سجل التقارير المجمعة الـ 24 ساعة -->
+                        <!-- 2. كارت سجل التقارير المجمعة الـ 24 ساعة -->
             <div class="card-item" style="border-top: 5px solid #17a2b8;">
                 <i class="fas fa-file-contract text-info"></i>
                 <h5 class="fw-bold">DAILY REPORTS</h5>
@@ -241,15 +280,7 @@
                 <a href="/reports/" class="btn-go" style="background:#17a2b8;">عرض السجل العام</a>
             </div>
 
-            <!-- 3. كارت لوحة تحليل الأداء والفرز الفني والمعدلات الشهري -->
-            <div class="card-item" style="border-top: 5px solid #28a745;">
-                <i class="fas fa-chart-pie text-success"></i>
-                <h5 class="fw-bold">ANALYTICS</h5>
-                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية</p>
-                <a href="/analytics/" class="btn-go" style="background:#28a745;">لوحة فرز وتحليل الأداء</a>
-            </div>
-
-            <!-- 4. كارت صيانة وتشغيل خطوط الطرد وعمليات الردم (البايب فيتر) -->
+                        <!-- 4. كارت صيانة وتشغيل خطوط الطرد وعمليات الردم (البايب فيتر) -->
             <div class="card-item" style="border-top: 5px solid #198754;">
                 <i class="fas fa-screwdriver-wrench text-success"></i>
                 <h5 class="fw-bold">PIPE FIGHTER</h5>
@@ -257,7 +288,7 @@
                 <a href="{% url 'pipe_report' %}" class="btn-go" style="background:#198754;">بدء تقرير الخط</a>
             </div>
 
-            <!-- 5. كارت جرد مخزن البر والموقع الموحد المطور بـ زراريه -->
+                        <!-- 5. كارت جرد مخزن البر والموقع الموحد المطور بـ زراريه -->
             <div class="card-item" style="border-top: 5px solid var(--navy);">
                 <i class="fas fa-warehouse text-primary" style="color:var(--navy) !important;"></i>
                 <h5 class="fw-bold">INVENTORY (SITE)</h5>
@@ -267,6 +298,25 @@
                     <a href="{% url 'site_inventory_view' %}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill py-2" style="width:50%; font-size:0.75rem;"><i class="fas fa-print me-1"></i>كشف</a>
                 </div>
             </div>
+
+                        <!-- 3. كارت لوحة تحليل الأداء والفرز الفني والمعدلات الشهري -->
+            <div class="card-item" style="border-top: 5px solid #28a745;">
+                <i class="fas fa-chart-pie text-success"></i>
+                <h5 class="fw-bold">ANALYTICS</h5>
+                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية</p>
+                <a href="/analytics/" class="btn-go" style="background:#28a745;">لوحة فرز وتحليل الأداء</a>
+            </div>
+
+
+            <!-- 1. كارت السولار والمحروقات العام للشركة -->
+            <div class="card-item" style="border-top: 5px solid #dc3545;">
+                <i class="fas fa-gas-pump text-danger"></i>
+                <h5 class="fw-bold">FUEL MONITOR</h5>
+                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي</p>
+                <a href="{% url 'fuel_report' %}" class="btn-go" style="background:#dc3545;">فتح ميزان السولار</a>
+            </div>
+            
+            
 
             <!-- 6. كارت دليل كادر موظفي ومهندسي وفنيي الشركة بالموقع -->
             <div class="card-item" style="border-top: 5px solid #0d6efd;">
