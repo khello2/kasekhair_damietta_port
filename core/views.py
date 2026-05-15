@@ -241,7 +241,7 @@ def fuel_report(request):
 
 @login_required
 def analytics(request):
-    from .models import WorkShift, Staff
+    from .models import WorkShift, Staff, Dredger
     from django.utils import timezone
     from datetime import datetime, timedelta
     import pytz
@@ -249,27 +249,46 @@ def analytics(request):
     cairo_tz = pytz.timezone('Africa/Cairo')
     now_local = timezone.now().astimezone(cairo_tz)
 
-    # 1. استقبال تواريخ الفلتر المحددة يدوياً من الصفحة
+    # 1. جلب كافة الكراكات المتاحة بالسيستم لعرضها في القائمة المنسدلة للفرز
+    all_dredgers = Dredger.objects.all()
+
+    # 2. استقبال معرف الكراكة المستهدفة من الرابط
+    dredger_id = request.GET.get('dredger_id')
+    current_dredger = None
+    if dredger_id:
+        try:
+            current_dredger = Dredger.objects.filter(id=int(dredger_id)).first()
+        except (ValueError, TypeError):
+            pass
+    
+    # حماية الأمان: لو مفيش كراكة ممررة بالرابط، السيستم يلقط أول كراكة مسجلة تلقائياً
+    if not current_dredger:
+        current_dredger = Dredger.objects.first()
+
+    # 3. استقبال تواريخ الفلتر الديناميكي الحر
     start_date_raw = request.GET.get('start_date')
     end_date_raw = request.GET.get('end_date')
 
     if start_date_raw and end_date_raw:
         try:
-            # تحويل النص لتواريخ مفهومة لبايثون مع ضبط التوقيت المحلي لمصر
             start_date = datetime.strptime(start_date_raw, '%Y-%m-%d').replace(hour=0, minute=0, second=0).astimezone(cairo_tz)
-            # جعل تاريخ النهاية يشمل اليوم كاملاً حتى الساعة 23:59
             end_date = datetime.strptime(end_date_raw, '%Y-%m-%d').replace(hour=23, minute=59, second=59).astimezone(cairo_tz)
         except ValueError:
-            # في حال حدوث خطأ في الصيغة يتم الرجوع للوضع الافتراضي (30 يوم)
             start_date = now_local - timedelta(days=30)
             end_date = now_local
     else:
-        # الوضع الافتراضي عند فتح الصفحة لأول مرة (آخر 30 يوماً متصلة)
         start_date = now_local - timedelta(days=30)
         end_date = now_local
 
-    # 2. سحب الورديات المحصورة بين التاريخين المحددين بالظبط
-    target_shifts = WorkShift.objects.filter(start_time__gte=start_date, start_time__lte=end_date)
+    # 4. محرك الفرز الفولاذي: جلب ورديات الفترة المحددة وتصفيتها إجبارياً بحسب الكراكة النشطة لمنع تداخل الداتا
+    if current_dredger:
+        target_shifts = WorkShift.objects.filter(
+            start_time__gte=start_date, 
+            start_time__lte=end_date,
+            report_24h__dredger=current_dredger  # الربط الصارم عبر تقرير الـ 24 ساعة المجمع
+        )
+    else:
+        target_shifts = WorkShift.objects.none()
 
     total_m3_period = 0
     total_meters_period = 0
@@ -366,6 +385,8 @@ def analytics(request):
         'total_m3': round(total_m3_period, 1), 'total_meters': round(total_meters_period, 1), 'total_fuel': round(total_fuel_period, 1),
         'month_start': start_date.strftime('%Y-%m-%d'), 'month_end': end_date.strftime('%Y-%m-%d'),
         'operators_ranking': operators_ranking, 'stop_analysis': stop_analysis, 'final_battle': final_battle,
+        'all_dredgers': all_dredgers,          # ممرر لبناء القائمة المنسدلة
+        'current_dredger': current_dredger,    # الكراكة النشطة الحالية للفرز
     }
     return render(request, 'core/analytics.html', context)
 

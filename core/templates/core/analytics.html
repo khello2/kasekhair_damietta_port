@@ -50,20 +50,32 @@
 <header class="dashboard-header no-print">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-                <!-- شريط الفلترة الديناميكي الحر (يختفي في الطباعة بشكل تلقائي) -->
-    <div class="card-section no-print mb-4" style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-right: 6px solid var(--gold);">
+    <!-- شريط الفلترة الديناميكي المطور للكراكات المتعددة (يختفي بالطباعة تلقائياً) -->
+    <div class="card-section no-print mb-4" style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-right: 6px solid var(--gold); direction: rtl !important;">
         <form method="GET" action="" class="row g-3 align-items-end">
-            <div class="col-md-4">
+            <!-- 1. قائمة اختيار الكراكة الفاخرة للشركة -->
+            <div class="col-md-3">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-ship text-warning me-1"></i> الكراكة المستهدفة:</label>
+                <select name="dredger_id" class="form-select fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px; font-size:0.95rem;">
+                    {% for dr in all_dredgers %}
+                        <option value="{{ dr.id }}" {% if dr.id == current_dredger.id %}selected{% endif %}>{{ dr.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- 2. تاريخ البداية -->
+            <div class="col-md-3">
                 <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-primary me-1"></i> تاريخ بداية الفرز:</label>
                 <input type="date" name="start_date" value="{{ month_start }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
             </div>
-            <div class="col-md-4">
+            <!-- 3. تاريخ النهاية -->
+            <div class="col-md-3">
                 <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-success me-1"></i> تاريخ نهاية الفرز:</label>
                 <input type="date" name="end_date" value="{{ month_end }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
             </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary fw-bold w-100" style="height: 48px; background-color: var(--navy) !important; border: 2px solid var(--gold) !important; border-radius: 8px; color: var(--gold); font-size: 1rem; transition: 0.3s;">
-                    <i class="fas fa-sync-alt me-1"></i> تحديث وفحص المؤشرات الآن
+            <!-- 4. زرار التحديث والفرز اللحظي -->
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary fw-bold w-100" style="height: 48px; background-color: var(--navy) !important; border: 2px solid var(--gold) !important; border-radius: 8px; color: var(--gold); font-size: 0.95rem; transition: 0.3s;">
+                    <i class="fas fa-sync-alt me-1"></i> تحديث وفحص المؤشرات
                 </button>
             </div>
         </form>

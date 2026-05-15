@@ -267,68 +267,113 @@
         </div>
     </div>
 
-    <!-- 4. سكشن كروت التحكم والعمليات الميدانية العامة (الـ 6 كروت الكبار المفتحة والبارزة بخلفية بيضاء شيك) -->
-    <div class="container mt-4 mb-5">
-        <img src="{% static 'images/project.jpeg' %}" class="project-banner shadow mb-4" alt="Project Banner">
+    <!-- 5. لوحة التحكم والعمليات الميدانية العامة (تطابق قسري 100% مع أبعاد كروت الكراكات فوق) -->
+    <div class="container mt-3 mb-5" style="max-width: 100%; padding-left: 15px !important; padding-right: 15px !important; box-sizing: border-box;">
         
-        <div class="cards-grid">
-                        <!-- 2. كارت سجل التقارير المجمعة الـ 24 ساعة -->
+        <!-- فرد الكروت مباشرة بروابطها وترتيبها الجديد النظيف وبدون الصندوق الأزرق الزائد -->
+        <div class="cards-grid m-0">
+            
+            <!-- 1. كارت سجل التقارير المجمعة 24 ساعة (REPORTS) -->
             <div class="card-item" style="border-top: 5px solid #17a2b8;">
-                <i class="fas fa-file-contract text-info"></i>
-                <h5 class="fw-bold">DAILY REPORTS</h5>
-                <p class="text-muted small mb-3">مراجعة وفحص أرشيف ومحاضر التقارير اليومية المجمعة الـ 24 ساعة للمشروع</p>
+                <i class="fas fa-file-contract text-info" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
+                <h5>DAILY REPORTS</h5>
+                <p class="text-muted small mb-3">عرض ومراجعة كافة التقارير المجمعة الـ 24 ساعة التاريخية لعمليات الأسطول</p>
                 <a href="/reports/" class="btn-go" style="background:#17a2b8;">عرض السجل العام</a>
             </div>
 
-                        <!-- 4. كارت صيانة وتشغيل خطوط الطرد وعمليات الردم (البايب فيتر) -->
+            <!-- 2. كارت صيانة وتشغيل خطوط الطرد وعمليات الردم (PIPE FIGHTER) -->
             <div class="card-item" style="border-top: 5px solid #198754;">
-                <i class="fas fa-screwdriver-wrench text-success"></i>
-                <h5 class="fw-bold">PIPE FIGHTER</h5>
+                <i class="fas fa-screwdriver-wrench text-success" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
+                <h5>PIPE FIGHTER</h5>
                 <p class="text-muted small mb-3">ورديات خطوط الطرد والأطوال وعمليات صيانة الردم والاستوك خارج الخدمة</p>
                 <a href="{% url 'pipe_report' %}" class="btn-go" style="background:#198754;">بدء تقرير الخط</a>
             </div>
 
-                        <!-- 5. كارت جرد مخزن البر والموقع الموحد المطور بـ زراريه -->
+            <!-- 3. كارت جرد مخزن البر والموقع الموحد (INVENTORY SITE) -->
             <div class="card-item" style="border-top: 5px solid var(--navy);">
-                <i class="fas fa-warehouse text-primary" style="color:var(--navy) !important;"></i>
-                <h5 class="fw-bold">INVENTORY (SITE)</h5>
+                <i class="fas fa-warehouse text-primary" style="font-size: 2.2rem; margin-bottom: 10px; color: var(--navy) !important;"></i>
+                <h5>INVENTORY (SITE)</h5>
                 <p class="text-muted small mb-3">تسجيل جرد ومطالعة أرصدة عهدة مخزن الموقع البري ومهمات الحركة والتشغيل</p>
                 <div class="d-flex gap-2 justify-content-center mt-2" style="width:100%;">
-                    <a href="{% url 'land_inventory' %}" class="btn btn-sm btn-primary fw-bold rounded-pill py-2" style="background:var(--navy); border:none; width:50%; font-size:0.75rem;">جرد البر</a>
+                    <a href="{% url 'land_inventory' %}" class="btn-go" style="background:#311987;">جرد البر</a>
                     <a href="{% url 'site_inventory_view' %}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill py-2" style="width:50%; font-size:0.75rem;"><i class="fas fa-print me-1"></i>كشف</a>
                 </div>
             </div>
 
-                        <!-- 3. كارت لوحة تحليل الأداء والفرز الفني والمعدلات الشهري -->
+            <!-- 4. كارت لوحة تحليل الأداء والفرز الفني (ANALYTICS) -->
             <div class="card-item" style="border-top: 5px solid #28a745;">
-                <i class="fas fa-chart-pie text-success"></i>
-                <h5 class="fw-bold">ANALYTICS</h5>
-                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية</p>
+                <i class="fas fa-chart-pie text-success" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
+                <h5>ANALYTICS</h5>
+                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية للشهر</p>
                 <a href="/analytics/" class="btn-go" style="background:#28a745;">لوحة فرز وتحليل الأداء</a>
             </div>
 
-
-            <!-- 1. كارت السولار والمحروقات العام للشركة -->
+            <!-- 5. كارت السولار والمحروقات العام (FUEL MONITOR) -->
             <div class="card-item" style="border-top: 5px solid #dc3545;">
-                <i class="fas fa-gas-pump text-danger"></i>
-                <h5 class="fw-bold">FUEL MONITOR</h5>
-                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي</p>
+                <i class="fas fa-gas-pump text-danger" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
+                <h5>FUEL MONITOR</h5>
+                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي للموقع</p>
                 <a href="{% url 'fuel_report' %}" class="btn-go" style="background:#dc3545;">فتح ميزان السولار</a>
             </div>
-            
-            
 
-            <!-- 6. كارت دليل كادر موظفي ومهندسي وفنيي الشركة بالموقع -->
+            <!-- 6. كارت دليل كادر موظفي ومهندسي الشركة (STAFF DIRECTORY) -->
             <div class="card-item" style="border-top: 5px solid #0d6efd;">
-                <i class="fas fa-address-book text-primary"></i>
-                <h5 class="fw-bold">STAFF DIRECTORY</h5>
+                <i class="fas fa-address-book text-primary" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
+                <h5>STAFF DIRECTORY</h5>
                 <p class="text-muted small mb-3">دليل أسماء وهواتف وجروبات كباتن الكراكة، والمشرفين، والمهندسين بالموقع</p>
                 <a href="/admin/core/staff/" class="btn-go" style="background:#0d6efd;">فتح دليل الهواتف</a>
             </div>
+
         </div>
     </div>
 
-    <!-- 5. توقيع كابتن إبراهيم إسماعيل الفخم وثيق الصلة والتناسق بالخلفية الكحلي الغامقة للـ body -->
+    <!-- الهندسة الرياضية الصارمة للـ CSS للـ السيطرة التامة على محاذاة الحواف -->
+    <style>
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card-item { 
+            background: #ffffff !important; 
+            border-radius: 15px !important; /* نفس انحناء كارت الكراكة بالظبط */
+            padding: 25px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
+            border-bottom: 5px solid transparent; 
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .btn-go { background: var(--navy); color: white !important; border-radius: 25px; text-decoration: none; padding: 12px 25px; display: inline-block; margin-top: 10px; font-weight: 700; transition: 0.3s; text-align: center; width: 85%; font-size: 0.9rem; }
+        .btn-go:hover { background: var(--gold); color: var(--navy) !important; }
+
+        /* 📱 الشاشات المتوسطة والموبايل - مطابقة الحواف 100% بالمسطرة هندسياً */
+        @media (max-width: 992px) { 
+            .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; } 
+        }
+        
+        @media (max-width: 768px) {
+            /* إجبار الشبكة على أبعاد الـ vessel-row فوق بالمللي لمنع البروز */
+            .container { padding-left: 15px !important; padding-right: 15px !important; }
+            .cards-grid { 
+                grid-template-columns: 1fr !important; /* كارت واحد مفرود بعرض الشاشة */
+                gap: 15px !important; /* مسافة عمودية متطابقة */
+                width: 100% !important;
+            }
+            .card-item { 
+                padding: 20px !important; 
+                border-radius: 15px !important; 
+                margin: 0 !important; /* إلغاء أي هوامش عشوائية */
+                width: 100% !important;
+            }
+            .card-item h5 { font-size: 0.95rem !important; font-weight: 800; margin-top: 10px; }
+            .btn-go { width: 100% !important; padding: 12px 20px; font-size: 0.85rem; border-radius: 50px !important; }
+        </div>
+    </style>
+
+    <!-- 6. توقيع كابتن إبراهيم إسماعيل الفخم وثيق الصلة والتنسيق بالخلفية الكحلي الغامقة للـ body -->
     <footer class="final-signature no-print">
         <div class="sig-wrapper">
             <div class="sig-divider"></div>
@@ -338,7 +383,7 @@
         </div>
     </footer>
 
-    <!-- سكريبت التحديث التلقائي لمنع خمول السيرفر (5 دقائق) -->
+    <!-- سكريبت التحديث والمزامنة التلقائية (5 دقائق) لمنع الخمول وبقاء نشاط السيرفر -->
     <script>
         var refreshTime = 300000; 
         var timeout = setTimeout(refresh, refreshTime);
