@@ -26,23 +26,39 @@
 
 <div class="header-box text-center shadow-sm">
     <img src="{% static 'images/logo.png' %}" width="50" class="bg-white rounded p-1 mb-1">
-    <h6 class="fw-bold mb-0">تسجيل جرد عهدة البحرية (الكراكة)</h6>
+    <!-- حقن اسم الكراكة الحالية في الترويسة الرئيسية العليا فوراً -->
+    <h6 class="fw-bold mb-0">تسجيل جرد عهدة البحرية - {{ current_dredger.name|default:"كراكة غير محددة" }}</h6>
 </div>
 
 <div class="main-container">
     <form method="POST">
         {% csrf_token %}
-
+         <input type="hidden" name="dredger_id" value="{{ current_dredger.id }}">
+        <!-- كارت البيانات الميدانية الأساسية المحدث لإظهار اسم الكراكة بدقة ورأسية كاملة -->
         <div class="card-section">
+            <div class="row g-2 mb-2">
+                <div class="col-12">
+                    <label class="row-label"><i class="fas fa-ship text-warning me-1"></i> الكراكة المستهدفة بالجرد</label>
+                    <div class="form-control border-0 fw-bold text-center py-2" style="background-color: #fffdf0; color: var(--navy); border: 1px solid var(--gold) !important; border-radius: 8px; font-size: 1.05rem;">
+                        {{ current_dredger.name|default:"كراكة غير محددة" }}
+                    </div>
+                </div>
+            </div>
             <div class="row g-2">
-                <div class="col-6"><label class="row-label">التاريخ</label><div class="form-control bg-light border-0 fw-bold text-center py-2">{{ date|date:"d-m-Y" }}</div></div>
-                <div class="col-6"><label class="row-label">المسؤول</label><div class="form-control bg-light border-0 fw-bold text-center py-2">{{ user.username }}</div></div>
+                <div class="col-6">
+                    <label class="row-label">التاريخ</label>
+                    <div class="form-control bg-light border-0 fw-bold text-center py-2" style="font-size: 0.9rem;">{{ date|date:"d-m-Y" }}</div>
+                </div>
+                <div class="col-6">
+                    <label class="row-label">المسؤول</label>
+                    <div class="form-control bg-light border-0 fw-bold text-center py-2" style="font-size: 0.9rem;">{{ user.username }}</div>
+                </div>
             </div>
         </div>
 
         {% for cat_name, items in categorized_items.items %}
         <div class="card-section">
-            <div class="section-title text-primary"><i class="fas fa-ship me-1"></i> قسم: {{ cat_name }}</div>
+            <div class="section-title text-primary"><i class="fas fa-box me-1"></i> قسم: {{ cat_name }}</div>
             <div id="cat-container-{{ forloop.counter }}">
                 {% for item in items %}
                 <div class="form-group-custom">

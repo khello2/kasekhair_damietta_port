@@ -47,6 +47,11 @@
         </div>
 
         <div class="info-bar">
+            <!-- ضع هذا السطر في رأس ورقة الطباعة لتنطق باسم الكراكة المسؤولة -->
+            <div class="print-info-item">
+                <strong>الكراكة المسؤولة:</strong> {{ report.dredger.name|default:"قاصد خير 1" }}
+            </div>
+
             <span><strong>رقم التقرير:</strong> PF-{{ report.id }}</span>
             <span><strong>تاريخ الجرد:</strong> {{ report.date|date:"d/m/Y H:i" }}</span>
             <span><strong>المسؤول:</strong> {{ report.operator.name }}</span>

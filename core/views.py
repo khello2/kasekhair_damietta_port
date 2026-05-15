@@ -239,31 +239,49 @@ def fuel_report(request):
     }
     return render(request, 'core/fuel_report.html', context)
 
+@login_required
 def analytics(request):
-    now = timezone.now()
+    from .models import WorkShift, Staff
+    from django.utils import timezone
+    from datetime import datetime, timedelta
+    import pytz
+
     cairo_tz = pytz.timezone('Africa/Cairo')
-    now_local = now.astimezone(cairo_tz)
+    now_local = timezone.now().astimezone(cairo_tz)
 
-    # 1. تحديد بداية الأسبوع الفني (الخميس 12:00 ظهراً)
-    days_since_thu = (now_local.weekday() - 3) % 7
-    week_start = (now_local - timedelta(days=days_since_thu)).replace(hour=12, minute=0, second=0, microsecond=0)
-    if now_local < week_start: week_start -= timedelta(days=7)
+    # 1. استقبال تواريخ الفلتر المحددة يدوياً من الصفحة
+    start_date_raw = request.GET.get('start_date')
+    end_date_raw = request.GET.get('end_date')
 
-    # 2. سحب الورديات (الفلتر الموحد لضمان تطابق الأرقام)
-    target_shifts = WorkShift.objects.filter(start_time__gte=week_start)
+    if start_date_raw and end_date_raw:
+        try:
+            # تحويل النص لتواريخ مفهومة لبايثون مع ضبط التوقيت المحلي لمصر
+            start_date = datetime.strptime(start_date_raw, '%Y-%m-%d').replace(hour=0, minute=0, second=0).astimezone(cairo_tz)
+            # جعل تاريخ النهاية يشمل اليوم كاملاً حتى الساعة 23:59
+            end_date = datetime.strptime(end_date_raw, '%Y-%m-%d').replace(hour=23, minute=59, second=59).astimezone(cairo_tz)
+        except ValueError:
+            # في حال حدوث خطأ في الصيغة يتم الرجوع للوضع الافتراضي (30 يوم)
+            start_date = now_local - timedelta(days=30)
+            end_date = now_local
+    else:
+        # الوضع الافتراضي عند فتح الصفحة لأول مرة (آخر 30 يوماً متصلة)
+        start_date = now_local - timedelta(days=30)
+        end_date = now_local
 
-    total_m3_week = 0
-    total_meters_week = 0
-    total_fuel_week = 0
+    # 2. سحب الورديات المحصورة بين التاريخين المحددين بالظبط
+    target_shifts = WorkShift.objects.filter(start_time__gte=start_date, start_time__lte=end_date)
+
+    total_m3_period = 0
+    total_meters_period = 0
+    total_fuel_period = 0
+    
     op_stats = {}
-    # ميزان الشفتات (A ضد B للأسبوع الحالي)
     shift_battle = {
-        'A': {'m3': 0, 'meters': 0, 'work_h': 0, 'stops': 0},
-        'B': {'m3': 0, 'meters': 0, 'work_h': 0, 'stops': 0}
+        'A': {'m3': 0, 'meters': 0, 'work_h': 0, 'stops': 0, 'fuel': 0, 'shifts_count': 0},
+        'B': {'m3': 0, 'meters': 0, 'work_h': 0, 'stops': 0, 'fuel': 0, 'shifts_count': 0}
     }
 
     for s in target_shifts:
-        # حساب المكعبات هندسياً لو صفر
         m3_val = float(s.quantity_m3 or 0)
         if m3_val == 0 and s.depth_after > 0:
              m3_val = abs(s.depth_after - s.depth_before) * (s.progress_meters or 0) * (s.swing_width or 0)
@@ -271,57 +289,68 @@ def analytics(request):
         meters_val = float(s.progress_meters or 0)
         fuel_val = float(s.fuel_usage or 0)
 
-        total_m3_week += m3_val
-        total_meters_week += meters_val
-        total_fuel_week += fuel_val
+        total_m3_period += m3_val
+        total_meters_period += meters_val
+        total_fuel_period += fuel_val
 
-        # تجميع بيانات المشغلين
-        name = s.operator.name if s.operator else "غير محدد"
+        name = s.operator.name if s.operator else "مشغل غير محدد"
         group = s.operator.group if s.operator else 'غير محدد'
+        
         if name not in op_stats:
-            op_stats[name] = {'m3': 0, 'meters': 0, 'work_h': 0, 'group': group}
+            op_stats[name] = {'m3': 0, 'meters': 0, 'work_h': 0, 'stops_h': 0, 'fuel': 0, 'group': group, 'count': 0}
 
         op_stats[name]['m3'] += m3_val
         op_stats[name]['meters'] += meters_val
+        op_stats[name]['fuel'] += fuel_val
+        op_stats[name]['count'] += 1
 
-        # تجميع ميزان الشفتات
         if group in shift_battle:
             shift_battle[group]['m3'] += m3_val
             shift_battle[group]['meters'] += meters_val
+            shift_battle[group]['fuel'] += fuel_val
+            shift_battle[group]['shifts_count'] += 1
+
+        end_t = s.end_time if s.end_time else timezone.now()
+        dur = (end_t - s.start_time).total_seconds() / 3600
 
         if s.status == 'active':
-            dur = ((s.end_time if s.end_time else now) - s.start_time).total_seconds() / 3600
             op_stats[name]['work_h'] += dur
             if group in shift_battle: shift_battle[group]['work_h'] += dur
         else:
-            dur_stop = ((s.end_time if s.end_time else now) - s.start_time).total_seconds() / 3600
-            if group in shift_battle: shift_battle[group]['stops'] += dur_stop
+            op_stats[name]['stops_h'] += dur
+            if group in shift_battle: shift_battle[group]['stops'] += dur
 
-    # بناء قائمة المشغلين
     operators_ranking = []
-    for name, data in op_stats.items():
+    for op_name, data in op_stats.items():
         rate = round(data['m3'] / data['work_h'], 2) if data['work_h'] > 0.1 else 0
-        contribution = round((data['m3'] / total_m3_week * 100), 1) if total_m3_week > 0 else 0
-        operators_ranking.append({
-            'name': name, 'm3': data['m3'], 'meters': data['meters'],
-            'work_h': round(data['work_h'], 1), 'rate': rate,
-            'contribution': contribution, 'group': data['group']
-        })
-    operators_ranking = sorted(operators_ranking, key=lambda x: x['m3'], reverse=True)
+        contribution = round((data['m3'] / total_m3_period * 100), 1) if total_m3_period > 0 else 0
+        fuel_per_m3 = round(data['fuel'] / data['m3'], 2) if data['m3'] > 0 else 0
 
-    # ميزان الشفتات النهائي
+        operators_ranking.append({
+            'name': op_name, 'm3': round(data['m3'], 1), 'meters': round(data['meters'], 1),
+            'work_h': round(data['work_h'], 1), 'stops_h': round(data['stops_h'], 1),
+            'rate': rate, 'fuel_per_m3': fuel_per_m3, 'contribution': contribution, 'group': data['group']
+        })
+    operators_ranking = sorted(operators_ranking, key=lambda x: (x['m3'], x['rate']), reverse=True)
+
     final_battle = []
     for g_name, g_data in shift_battle.items():
+        fuel_rate = round(g_data['fuel'] / g_data['m3'], 2) if g_data['m3'] > 0 else 0
         final_battle.append({
-            'name': g_name,
-            'm3': g_data['m3'],
-            'meters': g_data['meters'],
-            'work_h': round(g_data['work_h'], 1),
-            'stops': round(g_data['stops'], 1)
+            'name': g_name, 'm3': round(g_data['m3'], 1), 'meters': round(g_data['meters'], 1),
+            'work_h': round(g_data['work_h'], 1), 'stops': round(g_data['stops'], 1),
+            'fuel': round(g_data['fuel'], 1), 'fuel_rate': fuel_rate, 'shifts_count': g_data['shifts_count']
         })
 
-    # تحليل الوقفات المفضل عندك
-    status_map = {'maintenance': 'صيانة', 'breakdown': 'عطل فني', 'weather': 'جوية', 'basin': 'حوض', 'shift_change': 'وردية', 'other': 'أخرى'}
+    status_map = {
+        'breakdown_mech': 'عطل ميكانيكي', 'breakdown_elec': 'عطل كهربائي', 'breakdown_hydrulic': 'عطل هيدروليك',
+        'welding': 'أعمال لحام', 'maintenance': 'صيانة دورية / عمرة', 'anchors': 'نقل مخاطيف',
+        'maneuver': 'مناورة / تغيير موقع', 'pipeline': 'فك / تركيب / إصلاح خط الطرد',
+        'weather': 'توقف بسبب سوء الأحوال الجوية', 'waiting_barge': 'انتظار صندل / تموين',
+        'safety': 'توقف لأسباب تتعلق بالسلامة', 'inspection': 'تفتيش / زيارة رسمية',
+        'handover': 'استلام وتسليم وردية', 'obstruction': 'عوائق بالتربة', 'other': 'توقف لأسباب أخرى'
+    }
+    
     stop_analysis = []
     for g in ['A', 'B']:
         items = []
@@ -329,16 +358,17 @@ def analytics(request):
         for s_code, s_name in status_map.items():
             qs = g_stops.filter(status=s_code)
             if qs.exists():
-                hrs = sum(((rs.end_time if rs.end_time else now) - rs.start_time).total_seconds() / 3600 for rs in qs)
+                hrs = sum(((rs.end_time if rs.end_time else timezone.now()) - rs.start_time).total_seconds() / 3600 for rs in qs)
                 items.append({'name': s_name, 'count': qs.count(), 'hours': round(hrs, 1)})
         stop_analysis.append({'group': g, 'items': items})
 
     context = {
-        'total_m3': total_m3_week, 'total_meters': total_meters_week, 'total_fuel': total_fuel_week,
-        'week_start': week_start.strftime('%d/%m %H:%M'), 'week_end': (week_start + timedelta(days=7)).strftime('%d/%m %H:%M'),
+        'total_m3': round(total_m3_period, 1), 'total_meters': round(total_meters_period, 1), 'total_fuel': round(total_fuel_period, 1),
+        'month_start': start_date.strftime('%Y-%m-%d'), 'month_end': end_date.strftime('%Y-%m-%d'),
         'operators_ranking': operators_ranking, 'stop_analysis': stop_analysis, 'final_battle': final_battle,
     }
     return render(request, 'core/analytics.html', context)
+
 
 @login_required
 def inventory_print(request):
@@ -434,10 +464,12 @@ def error_403(request, exception=None):
 
 def print_marine_inventory(request, report_id):
     from .models import MarineInventoryReport
-    # جلب التقرير أو إظهار 404 لو مش موجود
+    from django.shortcuts import get_object_or_404, render
+    
+    # جلب التقرير متضمناً الكراكة والمسؤول لمنع أي أخطاء في الطباعة
     report = get_object_or_404(MarineInventoryReport, id=report_id)
 
-    # التعديل هنا: شيلنا كلمة select_related('item') وبقينا بنرتب بـ item_name
+    # ترتيب الأصناف المجرودة داخل جدول الطباعة
     details = report.details.all().order_by('category', 'item_name')
 
     # تقسيم البيانات للطباعة حسب القسم
@@ -451,10 +483,14 @@ def print_marine_inventory(request, report_id):
     return render(request, 'core/marine_inventory_print.html', {
         'report': report,
         'categorized_data': categorized_data,
-        'details': details  # احتياطي لو القالب بيستخدمها مباشرة
+        'details': details  
     })
 
 def marine_inventory_list(request):
+    from .models import MarineInventoryReport
+    from django.shortcuts import render
+    
+    # سحب كافة التقارير التاريخية وعرض الكراكة التابعة لها في جدول الأرشيف الموحد
     reports = MarineInventoryReport.objects.all().order_by('-date')
     return render(request, 'core/marine_inventory_list.html', {'reports': reports})
 
@@ -488,51 +524,66 @@ def site_inventory_view(request):
 
 @login_required
 def start_marine_inventory(request):
-    from .models import InventoryItem, MarineInventoryReport, MarineInventoryDetail, Staff
+    from .models import InventoryItem, MarineInventoryReport, MarineInventoryDetail, Staff, Dredger
     from django.utils import timezone
     from django.shortcuts import render, redirect
 
-    # نظام تأمين المشغل لمنع الـ IntegrityError نهائياً
+    # 1. لقط الكراكة من الـ GET أو الـ POST لضمان عدم ضياع الهوية الفنية للمعدّة أثناء الحفظ
+    dredger_id = request.GET.get('dredger_id') or request.POST.get('dredger_id')
+    current_dredger = None
+    
+    if dredger_id:
+        try:
+            current_dredger = Dredger.objects.filter(id=int(dredger_id)).first()
+        except (ValueError, TypeError):
+            pass
+            
+    # حركة أمان فنية حاسمة: لو المشغل فتح الصفحة مباشرة بدون رابط، يقرأ الكراكة الأولى
+    if not current_dredger:
+        current_dredger = Dredger.objects.first()
+
+    # تأمين الموظف المسؤول لتفادي الـ IntegrityError
     staff = Staff.objects.filter(user=request.user).first() or Staff.objects.first()
     if not staff:
         from django.contrib.auth.models import User
         admin_user = User.objects.filter(is_superuser=True).first()
         staff = Staff.objects.create(user=admin_user, name="مدير النظام")
 
-    # 1. التعديل: جلب أصناف الكراكة بناءً على مربع الاختيار المطور (show_in_marine=True)
+    # 2. جلب أصناف الكراكة بناءً على نظام المربعات المعزول (show_in_marine=True)
     raw_items = InventoryItem.objects.filter(show_in_marine=True).order_by('id')
 
-    # تنظيف برمجي للأصناف المكررة في العرض فقط
+    # تنظيف الأصناف المكررة في العرض الفوري
     all_items = []
     seen_names = set()
     for item in raw_items:
         clean_name = item.name.strip().lower()
         if clean_name not in seen_names:
-            # نمرر رصيد الكراكة المستقل فقط ليعرض في الفورم
             item.current_qty = item.quantity_marine
             all_items.append(item)
             seen_names.add(clean_name)
 
     if request.method == "POST":
-        # 2. إنشاء التقرير بختم الكراكة (marine)
+        # 3. فرض الحفظ الإجباري المباشر لاسم الكراكة الحقيقية في التقرير لمنع اللجوء للديفولت
         report = MarineInventoryReport.objects.create(
-            operator=staff, report_type='marine', notes=request.POST.get('notes', '')
+            operator=staff,
+            report_type='marine',
+            notes=request.POST.get('notes', ''),
+            dredger=current_dredger  # الحقن المباشر في قاعدة البيانات
         )
 
-        # 3. حفظ الأصناف الحالية وتحديث رصيد البحرية فقط (quantity_marine)
+        # 4. حفظ وتحديث أرصدة البحرية المخصصة فقط (quantity_marine)
         for item in all_items:
             qty_raw = request.POST.get(f'qty_{item.id}')
             if qty_raw is not None and qty_raw.strip() != "":
                 try:
                     qty_val = float(qty_raw)
-                    # التحديث المباشر لحقل الكراكة فقط بالعافية
                     InventoryItem.objects.filter(id=item.id).update(quantity_marine=qty_val)
                     MarineInventoryDetail.objects.create(
                         report=report, item_name=item.name, category=item.category, quantity_found=qty_val
                     )
                 except Exception: continue
 
-        # 4. إضافة الأصناف الجديدة وتثبيتها للأبد بختم الكراكة المطور
+        # 5. إضافة الأصناف الجديدة يدوياً وتثبيتها بختم ظهور الكراكة
         new_names = request.POST.getlist('new_item_name[]')
         new_qtys = request.POST.getlist('new_item_qty[]')
         new_cats = request.POST.getlist('new_item_cat[]')
@@ -540,16 +591,13 @@ def start_marine_inventory(request):
         for name, qty, cat_name in zip(new_names, new_qtys, new_cats):
             clean_name = name.strip()
             if clean_name:
-                # البحث في الجدول الرئيسي الموحد عن الصنف
-                existing = InventoryItem.objects.filter(name__iexact=clean_name, category=cat_name).first()
                 qty_val = float(qty or 0)
+                existing = InventoryItem.objects.filter(name__iexact=clean_name, category=cat_name).first()
 
                 if existing:
-                    # لو موجود مسبقاً، نحدث رصيد الكراكة الخاص به فقط
                     InventoryItem.objects.filter(id=existing.id).update(quantity_marine=qty_val)
                     MarineInventoryDetail.objects.create(report=report, item_name=existing.name, category=cat_name, quantity_found=qty_val)
                 else:
-                    # التعديل: إنشاء الصنف وتفعيل مربع ظهور الكراكة ليبقى ثابتاً في هذه الصفحة
                     InventoryItem.objects.create(
                         name=clean_name,
                         category=cat_name,
@@ -560,7 +608,7 @@ def start_marine_inventory(request):
 
         return redirect('marine_inventory_list')
 
-    # 5. تنظيم العرض للأقسام في الـ HTML بنظام البايب فيتر الموحد
+    # 6. تنظيم العرض للأقسام في الـ HTML
     categorized_items = {}
     for item in all_items:
         if item.category not in categorized_items:
@@ -569,6 +617,7 @@ def start_marine_inventory(request):
 
     return render(request, 'core/marine_inventory_form.html', {
         'categorized_items': categorized_items,
+        'current_dredger': current_dredger,  
         'date': timezone.now()
     })
 

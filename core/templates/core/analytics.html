@@ -4,42 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير التحليلات الفنية | كابتن ابراهيم اسماعيل</title>
-    <link href="https://cloudflare.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <title>تقرير التحليلات الفنية الشامل | كابتن إبراهيم إسماعيل</title>
+    <!-- تصحيح وتسريع تحميل روابط المكتبات الخارجية لمنع تجميد شاشة التحليل -->
+    <link rel="stylesheet" href="cloudflare.com">
+    <link rel="stylesheet" href="cloudflare.com">
     <style>
         :root { --navy: #0a192f; --gold: #d4af37; --bg: #f8f9fa; }
-        body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); font-family: 'Segoe UI', sans-serif; color: #333; }
         .dashboard-header { background: var(--navy); color: white; padding: 25px 0; border-bottom: 5px solid var(--gold); margin-bottom: 30px; }
         .stat-card { background: white; border-radius: 15px; padding: 20px; border-bottom: 4px solid var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .section-title { font-weight: 800; color: var(--navy); border-right: 5px solid var(--gold); padding-right: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         
-        .table-ranking { border-collapse: separate; border-spacing: 0 10px; }
+        .table-ranking { border-collapse: separate; border-spacing: 0 10px; width: 100%; }
         .table-ranking tr { background: white; }
-        .table-ranking td, .table-ranking th { padding: 15px !important; vertical-align: middle; border: none; }
+        .table-ranking td, .table-ranking th { padding: 15px !important; vertical-align: middle; border: none; text-align: center; }
         .table-ranking thead tr { background: var(--navy) !important; color: var(--gold); }
-        .op-row-1 { border-right: 6px solid #ffd700; }
-        .op-row-2 { border-right: 6px solid #c0c2c5; }
+        .op-row-1 { border-right: 6px solid #ffd700 !important; background: #fffdf0 !important; }
+        .op-row-2 { border-right: 6px solid #c0c2c5 !important; background: #fdfdfd !important; }
+        .op-row-normal { border-right: 6px solid #eee !important; }
         
         .battle-card { border-radius: 20px; color: white; transition: 0.3s; }
         .final-signature { background: var(--navy); padding: 40px 0; margin-top: 50px; border-top: 3px solid var(--gold); color: white; }
 
-        /* --- تنسيقات الطباعة الاحترافية --- */
+        /* --- تنسيقات الطباعة الاحترافية للأوراق الرسمية للمشروع --- */
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 10px !important; }
             .container { width: 100% !important; max-width: 100% !important; }
-            /* تنسيق الكروت في الورق */
             .stat-card { 
-                border: 2px solid #f0f0f0 !important; 
-                margin-bottom: 10px !important; 
+                border: 2px solid #ccc !important; 
+                margin-bottom: 15px !important; 
                 box-shadow: none !important;
-                float: right; width: 30%; margin-left: 3%; /* رص الكروت بالعرض في الورقة */
+                float: right; width: 30%; margin-left: 3%;
+                -webkit-print-color-adjust: exact;
             }
-            .section-title { margin-top: 20px !important; clear: both; }
+            .section-title { margin-top: 30px !important; clear: both; page-break-after: avoid; }
+            .battle-card { -webkit-print-color-adjust: exact; background-color: #0a192f !important; border: 3px solid #d4af37 !important; }
             .table-ranking tr { page-break-inside: avoid; }
+            .table-ranking thead tr { background: #0a192f !important; color: #d4af37 !important; -webkit-print-color-adjust: exact; }
         }
-
     </style>
 </head>
 <body>
@@ -47,90 +50,107 @@
 <header class="dashboard-header no-print">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold mb-0">لوحة مؤشرات الأداء والإنتاجية</h2>
-            <small class="text-gold">الأسبوع الفني: {{ week_start }} ⬅ {{ week_end }}</small>
+                <!-- شريط الفلترة الديناميكي الحر (يختفي في الطباعة بشكل تلقائي) -->
+    <div class="card-section no-print mb-4" style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-right: 6px solid var(--gold);">
+        <form method="GET" action="" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-primary me-1"></i> تاريخ بداية الفرز:</label>
+                <input type="date" name="start_date" value="{{ month_start }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div class="col-md-4">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-success me-1"></i> تاريخ نهاية الفرز:</label>
+                <input type="date" name="end_date" value="{{ month_end }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary fw-bold w-100" style="height: 48px; background-color: var(--navy) !important; border: 2px solid var(--gold) !important; border-radius: 8px; color: var(--gold); font-size: 1rem; transition: 0.3s;">
+                    <i class="fas fa-sync-alt me-1"></i> تحديث وفحص المؤشرات الآن
+                </button>
+            </div>
+        </form>
+    </div>
+
+            <h2 class="fw-bold mb-0">لوحة مؤشرات الأداء والإنتاجية التراكمية</h2>
+            <!-- تعديل الرأسية لتعبر عن الشهر التاريخي بالكامل بدلاً من الأسبوع لمنع تصفير الوردية المجازة -->
+            <small class="text-gold fw-bold"><i class="fas fa-calendar-alt me-1"></i> فترة التحليل الفني (30 يوماً متصلة): من {{ month_start }} إلى {{ month_end }}</small>
         </div>
         <div class="d-flex gap-2">
             <button onclick="window.print()" class="btn btn-warning fw-bold px-4 rounded-pill shadow">
-                <i class="fas fa-print me-1"></i> طباعة التقرير كاملاً
+                <i class="fas fa-print me-1"></i> طباعة تقرير الشهر كاملاً
             </button>
             <a href="/" class="btn btn-outline-light rounded-pill px-3">الرئيسية</a>
         </div>
     </div>
 </header>
 
-
-       <!-- 1. كروت الإجمالي (تم تعديلها لتظهر في الطباعة) -->
+<div class="container">
+    <!-- 1. كروت إجمالي الشهر (تم حقن متغيرات الشهر الموحدة المعزولة) -->
     <div class="row g-4 mb-5 text-center">
-        <!-- كارت المكعبات -->
         <div class="col-md-4">
             <div class="stat-card">
-                <h6 class="text-muted fw-bold">إجمالي المكعبات (الأسبوع)</h6>
-                <h2 class="fw-bold text-navy">{{ total_m3|floatformat:0 }}</h2>
-                <small class="text-secondary">متر مكعب</small>
+                <h6 class="text-muted fw-bold"><i class="fas fa-cubes text-primary me-1"></i> إجمالي إنتاج المكعبات (الشهر)</h6>
+                <h2 class="fw-bold text-navy" style="font-size: 2.3rem;">{{ total_m3|floatformat:0 }}</h2>
+                <small class="text-secondary fw-bold">متر مكعب منفذ</small>
             </div>
         </div>
-        <!-- كارت التقدم -->
         <div class="col-md-4">
             <div class="stat-card">
-                <h6 class="text-muted fw-bold">إجمالي التقدم (الأسبوع)</h6>
-                <h2 class="fw-bold text-navy">{{ total_meters|floatformat:0 }}</h2>
-                <small class="text-secondary">متر طولي</small>
+                <h6 class="text-muted fw-bold"><i class="fas fa-route text-success me-1"></i> إجمالي تقدم الخط (الشهر)</h6>
+                <h2 class="fw-bold text-navy" style="font-size: 2.3rem;">{{ total_meters|floatformat:0 }}</h2>
+                <small class="text-secondary fw-bold">متر طولي مفرود</small>
             </div>
         </div>
-        <!-- كارت السولار (يختفي في الطباعة لو مش ضروري أو سيبه يظهر) -->
         <div class="col-md-4">
             <div class="stat-card">
-                <h6 class="text-muted fw-bold">استهلاك السولار</h6>
-                <h2 class="fw-bold text-danger">{{ total_fuel|floatformat:0 }}</h2>
-                <small class="text-secondary">لتر</small>
+                <h6 class="text-muted fw-bold"><i class="fas fa-gas-pump text-danger me-1"></i> استهلاك وقود السولار</h6>
+                <h2 class="fw-bold text-danger" style="font-size: 2.3rem;">{{ total_fuel|floatformat:0 }}</h2>
+                <small class="text-secondary fw-bold">لتر مستهلك بالكراكة</small>
             </div>
         </div>
     </div>
 
-        <!-- 2. ميزان القوى والإنتاجية (نسخة التباين العالي جداً) -->
+    <!-- 2. ميزان القوى والإنتاجية (مقارنة شاملة متصلة تضمن بقاء بيانات الشفت المريح) -->
     <div id="print-battle" class="mb-5">
         <div class="section-title">
-            <span style="color: #0a192f !important;"><i class="fas fa-balance-scale me-2"></i> ميزان القوى والإنتاجية (مقارنة المجموعات)</span>
+            <span style="color: #0a192f !important;"><i class="fas fa-balance-scale me-2"></i> ميزان القوى والإنتاجية الشهري ومعدلات الحرق</span>
             <button onclick="printDiv('print-battle')" class="btn btn-sm btn-outline-primary no-print">
-                <i class="fas fa-print me-1"></i> طباعة المقارنة فقط
+                <i class="fas fa-print me-1"></i> طباعة ميزان الـ 30 يوماً فقط
             </button>
         </div>
         
         <div class="row g-4">
             {% for group in final_battle %}
             <div class="col-md-6">
-                <!-- كارت الشفت - تم إجبار الألوان بالكامل -->
                 <div class="battle-card p-4 shadow-lg" 
                      style="border-radius: 20px; background-color: #0a192f !important; border: 3px solid #d4af37 !important;">
                     
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2 class="fw-bold mb-0" style="color: #ffffff !important; font-size: 2.2rem !important;">شفت ({{ group.name }})</h2>
-                        <i class="fas fa-users-gear fa-2x" style="color: #d4af37 !important;"></i>
+                        <h2 class="fw-bold mb-0" style="color: #ffffff !important; font-size: 2rem !important;">شفت الوردية ({{ group.name }})</h2>
+                        <span class="badge bg-warning text-dark fw-bold px-3 py-2" style="font-size:0.8rem;">سجل: {{ group.shifts_count }} وردية</span>
                     </div>
 
                     <div class="row text-center">
-                        <!-- المكعبات -->
                         <div class="col-6 mb-4 border-start" style="border-color: #334155 !important;">
-                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">المكعبات</small>
-                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 2rem !important; margin: 5px 0;">{{ group.m3|floatformat:0 }}</h3>
+                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">إجمالي المكعبات</small>
+                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 1.8rem !important; margin: 5px 0;">{{ group.m3|floatformat:0 }}</h3>
                             <small style="color: #d4af37 !important; font-weight: bold;">متر مكعب</small>
                         </div>
-                        <!-- التقدم -->
                         <div class="col-6 mb-4">
-                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">التقدم</small>
-                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 2rem !important; margin: 5px 0;">{{ group.meters|floatformat:0 }}</h3>
+                            <small style="color: #94a3b8 !important; display: block; font-weight: bold;">إجمالي التقدم الطولي</small>
+                            <h3 style="color: #ffffff !important; font-weight: 900 !important; font-size: 1.8rem !important; margin: 5px 0;">{{ group.meters|floatformat:0 }}</h3>
                             <small style="color: #d4af37 !important; font-weight: bold;">متر طولي</small>
                         </div>
-                        <!-- ساعات التشغيل -->
-                        <div class="col-6 border-start" style="border-color: #334155 !important;">
-                            <small style="color: #94a3b8 !important; display: block;">ساعات العمل</small>
-                            <h4 style="color: #00ff88 !important; font-weight: 800 !important; font-size: 1.5rem !important;">{{ group.work_h }} س</h4>
+                        <div class="col-6 border-start" style="border-color: #334155 !important; border-top: 1px solid #334155 !important; padding-top: 10px;">
+                            <small style="color: #94a3b8 !important; display: block; font-size:0.8rem;">ساعات التشغيل الفعلي</small>
+                            <h4 style="color: #00ff88 !important; font-weight: 800 !important; font-size: 1.4rem !important; margin:5px 0;">{{ group.work_h }} ساعة</h4>
                         </div>
-                        <!-- ساعات التوقف -->
-                        <div class="col-6">
-                            <small style="color: #94a3b8 !important; display: block;">ساعات التوقف</small>
-                            <h4 style="color: #ff4d4d !important; font-weight: 800 !important; font-size: 1.5rem !important;">{{ group.stops }} س</h4>
+                        <div class="col-6" style="border-top: 1px solid #334155 !important; padding-top: 10px;">
+                            <small style="color: #94a3b8 !important; display: block; font-size:0.8rem;">ساعات التوقف والأعطال</small>
+                            <h4 style="color: #ff4d4d !important; font-weight: 800 !important; font-size: 1.4rem !important; margin:5px 0;">{{ group.stops }} ساعة</h4>
+                        </div>
+                        <!-- إضافة حقل معدل حرق السولار للوردية لإظهار كفاءة التوفير للإدارة -->
+                        <div class="col-12 mt-3 pt-3" style="border-top: 2px dashed #334155 !important;">
+                            <small style="color: #cbd5e1 !important; display: inline-block;">متوسط استهلاك الوقود لكل متر مكعب منتج:</small>
+                            <h5 style="color: #ffd700 !important; display: inline-block; font-weight: 900; margin-right: 8px; font-size: 1.2rem;">{{ group.fuel_rate }} لتر/م³</h5>
                         </div>
                     </div>
                 </div>
@@ -138,32 +158,49 @@
             {% endfor %}
         </div>
     </div>
-
-
-    <!-- 3. جدول المشغلين (قابل للطباعة منفصلاً) -->
-    <div id="print-operators" class="page-break">
+    <!-- 3. جدول المشغلين (حصاد الأداء والمساهمة ومعدل الوقود الشهري التراكمي) -->
+    <div id="print-operators" class="page-break mb-5">
         <div class="section-title">
-            <span><i class="fas fa-medal me-2"></i> حصاد كفاءة المشغلين (ترتيب أسبوعي)</span>
+            <span style="color: #0a192f !important;"><i class="fas fa-medal me-2"></i> حصاد كفاءة وأداء المشغلين الفني (ترتيب شهري تراكمي)</span>
             <button onclick="printDiv('print-operators')" class="btn btn-sm btn-outline-dark no-print">
-                <i class="fas fa-print me-1"></i> طباعة الترتيب فقط
+                <i class="fas fa-print me-1"></i> طباعة الترتيب الفردي فقط
             </button>
         </div>
         <div class="table-responsive">
             <table class="table table-ranking">
                 <thead>
-                    <tr><th>الترتيب</th><th class="text-start">المشغل</th><th>المجموعة</th><th>المكعبات</th><th>م3/س</th><th>المساهمة</th></tr>
+                    <tr>
+                        <th>الترتيب</th>
+                        <th class="text-start">اسم كابتن الكراكة (المشغل)</th>
+                        <th>المجموعة</th>
+                        <th>إجمالي المكعبات</th>
+                        <th>معدل الإنتاج (م³/ساعة)</th>
+                        <th>معدل حرق الجاز (لتر/م³)</th>
+                        <th>نسبة المساهمة بالشهر</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for op in operators_ranking %}
-                    <tr class="{% if forloop.counter == 1 %}op-row-1{% elif forloop.counter == 2 %}op-row-2{% endif %}">
+                    <tr class="{% if forloop.counter == 1 %}op-row-1{% elif forloop.counter == 2 %}op-row-2{% else %}op-row-normal{% endif %}">
                         <td class="fw-bold fs-4">{{ forloop.counter }}</td>
-                        <td class="text-start fw-bold text-navy fs-5">{{ op.name }}</td>
-                        <td><span class="badge {% if op.group == 'A' %}bg-primary{% else %}bg-warning text-dark{% endif %}">شفت {{ op.group }}</span></td>
-                        <td class="fw-bold fs-5">{{ op.m3|floatformat:1 }}</td>
-                        <td class="text-success fw-bold">{{ op.rate }}</td>
-                        <td style="width: 180px;">
-                            <div class="progress" style="height: 10px;"><div class="progress-bar {% if op.contribution > 0 %}bg-success{% else %}bg-secondary{% endif %}" style="width: {{ op.contribution }}%"></div></div>
-                            <small class="fw-bold">{{ op.contribution }}%</small>
+                        <td class="text-start fw-bold text-navy fs-5">
+                            {% if forloop.counter == 1 %}🏆 {% elif forloop.counter == 2 %}🥈 {% endif %}{{ op.name }}
+                        </td>
+                        <td>
+                            <span class="badge {% if op.group == 'A' %}bg-primary{% else %}bg-warning text-dark{% endif %} px-3 py-2 fw-bold" style="font-size:0.8rem;">
+                                شفت {{ op.group }}
+                            </span>
+                        </td>
+                        <td class="fw-bold fs-5 text-navy">{{ op.m3|floatformat:0 }} م³</td>
+                        <td class="text-success fw-bold fs-5">{{ op.rate }} م³/س</td>
+                        <!-- حقن حقل معدل استهلاك السولار للمشغل لتحديد كفاءة تشغيل اليد -->
+                        <td class="text-danger fw-bold fs-5">{{ op.fuel_per_m3 }} لتر/م³</td>
+                        <td style="width: 180px; vertical-align: middle;">
+                            <div class="progress" style="height: 12px; background-color: #e2e8f0; border-radius: 6px; overflow: hidden;">
+                                <div class="progress-bar {% if forloop.counter == 1 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     style="width: {{ op.contribution }}%; font-weight: bold;"></div>
+                            </div>
+                            <small class="fw-bold d-block mt-1 text-center" style="font-size:0.85rem; color:var(--navy);">{{ op.contribution }}% من المشروع</small>
                         </td>
                     </tr>
                     {% endfor %}
@@ -172,18 +209,38 @@
         </div>
     </div>
 
-    <!-- 4. سجل الوقفات -->
-    <div class="page-break mt-5 no-print">
-        <h3 class="section-title">تحليل الوقفات</h3>
+    <!-- 4. سجل الوقفات الفنية (يظهر في المعاينة والطباعة ويغطي الـ 15 نوعاً الفابريكا بالكامل) -->
+    <div id="print-stops" class="page-break mt-5">
+        <h3 class="section-title">
+            <span style="color: #0a192f !important;"><i class="fas fa-exclamation-triangle me-2"></i> تحليل الوقفات والأعطال والخلل الفني (سجل الـ 30 يوماً)</span>
+            <button onclick="printDiv('print-stops')" class="btn btn-sm btn-outline-danger no-print">
+                <i class="fas fa-print me-1"></i> طباعة الوقفات فقط
+            </button>
+        </h3>
         <div class="row g-4">
             {% for g_stop in stop_analysis %}
             <div class="col-md-6">
-                <div class="stat-card">
-                    <h5 class="fw-bold {% if g_stop.group == 'A' %}text-primary{% else %}text-warning{% endif %}">مجموعة ({{ g_stop.group }})</h5>
-                    <table class="table table-sm">
-                        {% for item in g_stop.items %}
-                        <tr><td class="text-start fw-bold">{{ item.name }}</td><td class="text-center">{{ item.count }} مرة</td><td class="text-danger fw-bold">{{ item.hours }}س</td></tr>
-                        {% endfor %}
+                <div class="stat-card" style="border-top: 4px solid {% if g_stop.group == 'A' %}#0d6efd{% else %}#ffc107{% endif %};">
+                    <h5 class="fw-bold mb-3 {% if g_stop.group == 'A' %}text-primary{% else %}text-warning{% endif %}" style="font-size:1.1rem;">
+                        <i class="fas fa-clock me-1"></i> وقفات وأعطال مجموعة ({{ g_stop.group }})
+                    </h5>
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr class="table-dark small">
+                                <th class="text-start" style="padding:8px 12px;">سبب العطل/التوقف الفني</th>
+                                <th>التكرار</th>
+                                <th class="text-danger">المدة بالساعات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in g_stop.items %}
+                            <tr>
+                                <td class="text-start fw-bold text-secondary" style="padding:8px 12px; font-size:0.85rem;">{{ item.name }}</td>
+                                <td class="text-center fw-bold"><span class="badge bg-secondary px-2 py-1">{{ item.count }} مرة</span></td>
+                                <td class="text-center text-danger fw-bold fs-6" style="background-color: #fff5f5;">{{ item.hours }} ساعة</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -192,30 +249,28 @@
     </div>
 </div>
 
+<!-- التوقيع الفخم للكابتن إبراهيم إسماعيل -->
 <footer class="final-signature text-center">
-    <div style="width: 100px; height: 3px; background: var(--gold); margin: 0 auto 15px;"></div>
-    <p class="mb-1 opacity-75">تم تطوير وتصميم النظام باحترافية بواسطة</p>
-    <h1 class="fw-bold" style="color: var(--gold); letter-spacing: 2px;">كابتن / ابراهيم اسماعيل</h1>
-    <small class="opacity-50">2026 &copy; جميع الحقوق محفوظة لشركة قاصد خير</small>
+    <div style="width: 120px; height: 4px; background: var(--gold); margin: 0 auto 15px; border-radius: 2px;"></div>
+    <p class="mb-1 opacity-75" style="font-size:0.95rem; font-weight:500;">تم تطوير وتصميم وهندسة النظام باحترافية كاملة بواسطة</p>
+    <h1 class="fw-bold" style="color: var(--gold); letter-spacing: 3px; font-size: 2.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">كابتن / إبراهيم إسماعيل</h1>
+    <small class="opacity-50 fw-bold">2026 &copy; جميع الحقوق محفوظة برمجياً - لشركة قاصد خير للمقاولات</small>
 </footer>
 
-<!-- كود الطباعة الذكي -->
+<!-- كود الطباعة المحسن لتسريع الاستجابة -->
 <script>
     function printDiv(divId) {
         var printContents = document.getElementById(divId).innerHTML;
         var originalContents = document.body.innerHTML;
 
-        // استبدال محتوى الصفحة بالجزء المراد طباعته مؤقتاً
-        document.body.innerHTML = "<html><head><title>طباعة تقرير</title>" + 
-            "<link rel='stylesheet' href='https://cloudflare.com'>" +
-            "<style>body{direction:rtl; padding:20px; font-family:sans-serif;} .no-print{display:none;} table{width:100%; border-collapse:collapse;} th,td{border:1px solid #ddd; padding:10px; text-align:center;} .badge{border:1px solid #000; color:black;} h2,h3{border-bottom:2px solid #d4af37; padding-bottom:10px; margin-bottom:20px;}</style>" +
+        document.body.innerHTML = "<html><head><title>محضر تحليل الأداء الفني - قاصد خير</title>" + 
+            "<link rel='stylesheet' href='cloudflare.com'>" +
+            "<style>body{direction:rtl; padding:30px; font-family:'Segoe UI',sans-serif; background:#fff;} .no-print{display:none;} table{width:100%; border-collapse:collapse; margin-top:15px;} th,td{border:1px solid #999; padding:12px; text-align:center; font-weight:bold;} th{background-color:#f0f0f0 !important; color:#0a192f;} .badge{border:1px solid #000; padding:3px 8px; font-size:12px;} h2,h3,h5{color:#0a192f; border-bottom:2px solid #d4af37; padding-bottom:8px; margin-bottom:15px;} .text-danger{color:#dc3545 !important;} .text-success{color:#198754 !important;}</style>" +
             "</head><body>" + printContents + "</body></html>";
 
         window.print();
-        
-        // إرجاع الصفحة لأصلها بعد الطباعة
         document.body.innerHTML = originalContents;
-        window.location.reload(); // إعادة تحميل لضمان عمل الأزرار
+        window.location.reload();
     }
 </script>
 

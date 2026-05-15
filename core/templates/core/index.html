@@ -1,221 +1,117 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kased Khair | Project Portal</title>
 
-    <!-- الروابط الأساسية للمكتبات -->{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kased Khair | Project Portal</title>
-
-    <!-- الروابط الأساسية للمكتبات -->
-    <link rel="stylesheet" href="https://jsdelivr.net">
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <!-- روابط سريعة وخفيفة لعدم تجميد الشاشة -->
+    <link rel="stylesheet" href="cloudflare.com">
+    <link rel="stylesheet" href="jsdelivr.net">
 
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; --light-bg: #f4f7f6; }
-        body { background-color: var(--light-bg); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--navy) !important; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-        /* Navigation & Header */
-        .top-nav { background: white; padding: 10px 50px; display: flex; justify-content: flex-end; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header-section { background: white; text-align: center; padding: 25px 20px; border-bottom: 5px solid var(--gold); }
-        .logo { width: 160px; margin-bottom: 10px; }
+        /* 1. الـ Top Nav المودرن بالإنجليزي بالكامل */
+        .top-nav { background: #ffffff; padding: 12px 50px; display: flex; justify-content: flex-end; gap: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .top-nav a { color: var(--navy); text-decoration: none; font-weight: 700; font-size: 0.9rem; transition: 0.2s; }
+        .top-nav a:hover { color: var(--gold); }
+        .user-tag { border-left: 2px solid #cbd5e1; padding-left: 15px; color: #475569; font-size: 0.85rem; font-weight: 600; }
+        .btn-logout { background: none; border: none; color: #dc3545 !important; font-weight: 700; font-size: 0.85rem; cursor: pointer; padding: 0; }
+        .btn-logout:hover { text-decoration: underline; }
 
-        /* تنسيق الأزرار الذكية الجديدة */
-.action-buttons-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.btn-action {
-    flex: 1;
-    max-width: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 10px;
-    border-radius: 15px;
-    text-decoration: none !important;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.btn-action span {
-    color: white;
-    font-weight: 800;
-    font-size: 0.85rem;
-    margin-top: 8px;
-}
-
-.icon-circle {
-    width: 35px;
-    height: 35px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-}
-
-/* تنسيق نصوص الكروت لضمان وضوحها */
-.card-item h5 {
-    color: var(--navy) !important; /* لون كحلي داكن */
-    font-weight: 800 !important;
-    margin-top: 10px;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-/* للتأكيد على لون الأيقونات */
-.card-item i {
-    margin-bottom: 10px;
-}
-
-/* الألوان الحيوية */
-.btn-start { background: linear-gradient(145deg, #2ecc71, #27ae60); }
-.btn-stop { background: linear-gradient(145deg, #e74c3c, #c0392b); }
-.btn-handover { background: linear-gradient(145deg, #f1c40f, #f39c12); }
-.btn-handover span, .btn-handover .icon-circle { color: #2c3e50; }
-
-.btn-action:hover {
-    transform: translateY(-5px);
-    filter: brightness(1.2);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
-}
-
-/* التكيف مع الموبايل */
-@media (max-width: 768px) {
-    .btn-action { padding: 8px 5px; }
-    .btn-action span { font-size: 0.75rem; }
-    .icon-circle { width: 30px; height: 30px; font-size: 0.8rem; }
-}
-
-        /* شريط الحالة الحي */
-        .live-status-container { background: var(--navy); color: white; padding: 20px 0; border-bottom: 3px solid var(--gold); }
-        .vessel-row {
-            background: rgba(56, 135, 138, 0.15);
-            border-radius: 12px; padding: 15px; margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.3s;
-        }
-        .info-label { color: var(--gold); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 1px; }
-        .phone-link { color: white; text-decoration: none; font-weight: bold; transition: 0.2s; }
-        .phone-link:hover { color: var(--gold); }
-        .action-btn {
-        border-radius: 50px; /* جعل الأزرار دائرية الأطراف (عصرية) */
-        padding: 10px 25px;
-        font-weight: 700;
-        transition: 0.3s;
-        border: none;
-        min-width: 150px;
-        color: white !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .btn-success { background: linear-gradient(45deg, #28a745, #218838); }
-    .btn-danger { background: linear-gradient(45deg, #dc3545, #c82333); }
-    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
-    .lock-status-box {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px dashed #6c757d;
-        border-radius: 15px;
-        min-width: 250px;
-    }
-        /* الدائرة المتحركة */
-        .status-dot-animated {
-            width: 12px; height: 12px; border-radius: 50%;
-            animation: blinker 1.5s linear infinite;
-            box-shadow: 0 0 8px rgba(0,0,0,0.3);
-        }
-        @keyframes blinker { 50% { opacity: 0.3; } }
-
-        .status-bulb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-}
-.bg-success.status-bulb {
-    background-color: #28a745 !important;
-    animation: pulse-green 2s infinite;
-}
-.bg-danger.status-bulb {
-    background-color: #dc3545 !important;
-    animation: pulse-red 2s infinite;
-}
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(40, 167, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
-}
-@keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-}
-
-
-        /* الشريط الإخباري */
-        .news-ticker-container {
-            background: #fdf7e3; border-bottom: 2px solid var(--gold);
-            height: 45px; display: flex; align-items: center; overflow: hidden;
-        }
-        .ticker-label {
-            background: var(--navy); color: var(--gold); padding: 0 20px;
-            height: 100%; display: flex; align-items: center; font-weight: bold;
-            z-index: 2; white-space: nowrap;
-        }
+        /* 2. الهيدر والشعار بالخلفية البيضاء النظيفة */
+        .white-top-section { background: #ffffff !important; text-align: center; padding: 25px 20px; border-bottom: 5px solid var(--gold); }
+        .logo { width: 140px; margin-bottom: 12px; }
+        .news-ticker-container { background: #fffdf2; border-bottom: 3px solid var(--gold); height: 45px; display: flex; align-items: center; overflow: hidden; }
+        .ticker-label { background: var(--navy); color: var(--gold); padding: 0 20px; height: 100%; display: flex; align-items: center; font-weight: bold; white-space: nowrap; }
         .ticker-item { color: #333; font-weight: 600; font-size: 1rem; margin-right: 15px; }
         .ticker-separator { color: var(--gold); padding: 0 15px; }
 
-        /* الكروت والبانر */
-        .project-banner { width: 100%; height: 400px; object-fit: cover; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 40px; margin-bottom: 50px; }
-        .card-item { background: white; border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 4px solid transparent; }
-        .card-item:hover { transform: translateY(-8px); border-bottom: 4px solid var(--gold); }
-        .card-item i { font-size: 2.5rem; color: var(--navy); margin-bottom: 15px; }
-        .btn-go { background: var(--navy); color: white; border-radius: 25px; text-decoration: none; padding: 8px 30px; display: inline-block; margin-top: 10px; font-weight: 600; transition: 0.3s; }
-        .btn-go:hover { background: var(--gold); color: white; }
+        /* 3. شريط الحالة وكروت الكراكات (الكحلي الفخم الموحد) */
+        .live-status-container { background: var(--navy) !important; color: white; padding: 30px 0 10px 0; }
+        .vessel-row { background: rgba(255, 255, 255, 0.04) !important; border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(212, 175, 55, 0.25); }
+        
+        .action-buttons-wrapper { display: flex; justify-content: center; width: 100%; gap: 10px; }
+        .btn-action {
+            flex: 1; max-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 12px 10px; border-radius: 15px; text-decoration: none !important; transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-action span { color: white; font-weight: 800; font-size: 0.85rem; margin-top: 8px; }
+        .icon-circle { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+
+        .btn-start { background: linear-gradient(145deg, #2ecc71, #27ae60); }
+        .btn-stop { background: linear-gradient(145deg, #e74c3c, #c0392b); }
+        .btn-handover { background: linear-gradient(145deg, #f1c40f, #f39c12); }
+        .btn-handover span, .btn-handover .icon-circle { color: #2c3e50; }
+        .btn-action:hover { transform: translateY(-4px); filter: brightness(1.15); box-shadow: 0 6px 15px rgba(0,0,0,0.3) !important; }
+
+        .info-label { color: var(--gold); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 2px; font-weight: bold; }
+        .status-dot-animated { width: 12px; height: 12px; border-radius: 50%; animation: blinker 1.5s linear infinite; box-shadow: 0 0 8px rgba(0,0,0,0.3); }
+        @keyframes blinker { 50% { opacity: 0.3; } }
+        .status-bulb { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .bg-success.status-bulb { background-color: #28a745 !important; animation: pulse-green 2s infinite; }
+        .bg-danger.status-bulb { background-color: #dc3545 !important; animation: pulse-red 2s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(40, 167, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); } }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+
+        /* 4. تمييز وتفتيح الكروت الـ 6 السفلية (خلفيات بيضاء ناصعة لمنع الاختفاء) */
+        .project-banner { width: 100%; height: 350px; object-fit: cover; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 25px; margin-bottom: 35px; }
+        
+        .card-item { 
+            background: #ffffff !important; /* خلفية بيضاء ناصعة تبرز بوضوح */
+            border-radius: 16px; padding: 25px; text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25) !important; /* ظلال قوية لعزل الكارت عن الخلفية الغامقة */
+            transition: 0.3s; border-bottom: 5px solid transparent; 
+        }
+        .card-item:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.35) !important; }
+        .card-item h5 { color: var(--navy) !important; font-weight: 800 !important; margin-top: 15px; font-size: 1rem; letter-spacing: 0.5px; }
+        .card-item p.text-muted { color: #556575 !important; font-weight: 600; font-size: 0.75rem; }
+        .card-item i { font-size: 2.5rem; margin-bottom: 5px; }
+        
+        .btn-go { background: var(--navy); color: white !important; border-radius: 25px; text-decoration: none; padding: 10px 25px; display: inline-block; margin-top: 10px; font-weight: 700; transition: 0.3s; text-align: center; width: 85%; font-size: 0.85rem; border: 1px solid transparent; }
+        .btn-go:hover { background: var(--gold); color: var(--navy) !important; border-color: var(--navy); }
+
+        /* التوقيع الملكي المطور */
+        .final-signature { width: 100%; margin-top: 100px; padding-bottom: 50px; display: block !important; clear: both; }
+        .sig-wrapper { text-align: center !important; max-width: 600px; margin: 0 auto; }
+        .sig-divider { width: 80px; height: 4px; background-color: var(--gold); margin: 0 auto 15px; border-radius: 2px; }
+        .sig-label { color: #ccd1d6 !important; font-size: 1rem !important; margin-bottom: 5px !important; display: block !important; opacity: 0.8; }
+        .sig-name { color: #ffffff !important; font-size: 2.5rem !important; font-weight: 900 !important; margin: 5px 0 !important; display: block !important; text-shadow: 2px 2px 12px rgba(0,0,0,0.6); }
+        .sig-rights { color: var(--gold) !important; font-size: 0.85rem !important; margin-top: 10px !important; display: block !important; letter-spacing: 1px; font-weight: bold; }
 
         @media (max-width: 992px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
-
+        @media (max-width: 576px) { .cards-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <!-- 1. Top Nav -->
-    <div class="top-nav">
-        <a href="/admin" class="text-decoration-none fw-bold" style="color:var(--navy);"><i class="fas fa-cog me-1"></i> Admin Panel</a>
-        <span class="border-start ps-3">User: <strong>{{ user.username }}</strong></span>
+
+    <!-- 1. المربع الأبيض العلوي الموحد (الـ Top Nav بالإنجليزي) -->
+    <div class="top-nav no-print">
+        <a href="/admin"><i class="fas fa-cog城乡 me-1"></i> Admin Panel</a>
+        <span class="user-tag">User: <strong>{{ user.username }}</strong></span>
         <form action="/admin/logout/" method="post" style="display:inline;">
-            {% csrf_token %}<button type="submit" class="btn btn-link text-danger p-0 fw-bold ms-3 text-decoration-none">Logout</button>
+            {% csrf_token %}
+            <button type="submit" class="btn-logout ms-3">Logout</button>
         </form>
     </div>
 
-    <!-- 2. Header -->
-    <div class="header-section">
+    <!-- 2. الهيدر والشعار بالخلفية البيضاء الممتدة حتى كروت الكراكات -->
+    <div class="white-top-section">
         <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
-        <h2 style="color:var(--navy); font-weight:800; text-transform: uppercase;">Kased Khair – For General Supplies and Contracting</h2>
-        <h4 style="color:#3b0e8f;">مشروع ردم الحاجز الشرقي - ميناء دمياط</h4>
-        <p class="text-muted small">Eastern Barrier Reclamation Project - Damietta Port</p>
+        <h2 style="color:var(--navy); font-weight:800; text-transform: uppercase; font-size: 1.6rem; margin-bottom: 5px;">شركة قاصد خير للمقاولات العمومية والتوريدات</h2>
+        <h4 class="fw-bold mb-1" style="color:#3b0e8f; font-size: 1.15rem;">مشروع ردم الحاجز الشرقي - ميناء دمياط</h4>
+        <p class="text-muted small mb-0" style="font-size: 0.85rem; font-weight: 600;">Eastern Barrier Reclamation Project - Damietta Port</p>
     </div>
 
-    <!-- الشريط الإخباري -->
+    <!-- الشريط الإخباري (نهاية القطاع الأبيض للموقع) -->
     {% if news %}
-    <div class="news-ticker-container">
-        <div class="ticker-label">تنبيهات العمل</div>
+    <div class="news-ticker-container no-print">
+        <div class="ticker-label"><i class="fas fa-bullhorn me-1"></i> تنبيهات حركة العمل</div>
         <marquee behavior="scroll" direction="right" onmouseover="this.stop();" onmouseout="this.start();">
             {% for item in news %}
                 <span class="ticker-item">{{ item.message }}</span>
@@ -225,129 +121,96 @@
     </div>
     {% endif %}
 
-    <!-- 3. Live Status Bar -->
+    <!-- 4. شريط الحالة الحي للكراكات (تنسيق عربي RTL متناسق بالكامل باللون الكحلي الفخم) -->
     <div class="live-status-container">
         <div class="container">
-            <div class="row">
+            <div class="row m-0 p-0">
             {% for d in dredger_status_list %}
-                {# 1. التأكد من حق الرؤية #}
                 {% if d.can_view %}
-                <div class="col-12 mb-5">
-<!-- تعديل لون خلفية الصفحة بالكامل لضمان التناسق -->
-<style>
-    body { background-color: #1a2a3a !important; }
-    .live-status-container { background: #1a2a3a !important; padding-top: 30px; }
-</style>
-<div class="vessel-row shadow-sm position-relative" style="padding: 15px; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 15px; direction: ltr !important; margin-bottom: 25px;">
+                <div class="col-12 mb-4">
+                    <!-- كارت الكراكة المنفصل - تم تعديل الاتجاه للغة العربية بالكامل -->
+                    <div class="vessel-row shadow-sm position-relative" style="padding: 20px; direction: rtl !important; margin-bottom: 5px; text-align: right;">
 
-    <!-- مؤشر السولار (أعلى اليسار) -->
-    <div class="position-absolute top-0 start-0 p-2" style="z-index: 5;">
-        <div class="bg-white bg-opacity-75 rounded-pill px-2 py-1 border shadow-sm d-flex align-items-center">
-            <span class="status-bulb bg-{{ d.fuel_alert }} me-1"></span>
-            <small class="fw-bold text-navy" style="font-size: 0.65rem;">{{ d.current_fuel }} L</small>
-        </div>
-    </div>
-
-    <div class="row align-items-center m-0 p-0" style="width: 100% !important; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;">
-
-        <!-- [الجانب الأيسر]: الداتا بتنسيق مرتب (English LTR) -->
-        <div style="width: 55% !important; text-align: left; direction: ltr !important;">
-            <div class="d-flex flex-column gap-2 mt-2">
-                <!-- 1. اسم الكراكة -->
-                <h3 class="mb-0 fw-bold text-white" style="font-size: 1.3rem; letter-spacing: 1px;">{{ d.name }}</h3>
-
-                <!-- 2. حالة الكراكة مع الوميض (إصلاح النزول) -->
-                <div class="d-flex align-items-center gap-2 mb-1" style="display: flex !important; flex-direction: row !important;">
-                    <div class="status-dot-animated" style="width: 9px !important; height: 9px !important; border-radius: 50% !important; display: inline-block !important; flex-shrink: 0; background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %};"></div>
-                    <span style="color: #fff; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">{{ d.status_text }}</span>
-                </div>
-
-                <!-- 3. روابط الاتصال (كل واحد في سطر مستقل لعدم التداخل) -->
-                <div class="d-flex flex-column gap-2 mt-1">
-                    <!-- تواصل الكراكة -->
-                    <a href="tel:{{ d.vessel_phone }}" class="text-decoration-none d-flex align-items-center gap-2">
-                        <i class="fas fa-ship text-gold" style="font-size: 0.8rem;"></i>
-                        <span style="color: #fff; font-size: 0.85rem; border-bottom: 1px solid #d4af37; white-space: nowrap;">تواصل مع الكراكة</span>
-                    </a>
-
-                    <!-- بيانات المشغل (مقسمة لسطرين عشان الزحمة) -->
-                    <div class="pt-1 border-top border-secondary border-opacity-25 d-flex flex-column gap-1">
-                        <span class="text-white-50 fw-bold" style="font-size: 0.8rem; display: block;">{{ d.op_name }}</span>
-                        <a href="tel:{{ d.op_phone }}" class="text-decoration-none d-flex align-items-center gap-2">
-                            <i class="fas fa-phone-alt text-success" style="font-size: 0.8rem;"></i>
-                            <span style="color: #fff; font-size: 0.85rem; border-bottom: 1px solid #28a745; white-space: nowrap;">تواصل مع المشغل</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- [الجانب الأيمن]: الأزرار (Arabic RTL) -->
-        <div style="width: 45% !important; direction: rtl !important; text-align: right;">
-            {% if d.can_add %}
-            <!-- العرض الثابت لضمان تناسق الأزرار -->
-            <div class="d-flex flex-column gap-2 ms-auto" style="width: 160px !important; margin-right: auto;">
-
-                {% if d.is_handed_over %}
-                    <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 45px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                        <span style="font-size: 0.85rem; font-weight: 800;">استلام عهدة</span>
-                    </a>
-                {% elif d.is_owner %}
-                    {% if d.status_code == 'active' %}
-                        <a href="{% url 'quick_action' d.object.id 'stop' %}" class="btn-action btn-stop w-100 shadow-sm" style="min-height: 45px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                            <span style="font-size: 0.85rem; font-weight: 800;">تسجيل توقف</span>
-                        </a>
-                    {% else %}
-                        <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 45px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                            <span style="font-size: 0.85rem; font-weight: 800;">بدء تشغيل</span>
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'quick_action' d.object.id 'handover' %}" class="btn-action btn-handover w-100 shadow-sm" style="min-height: 45px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                        <span style="font-size: 0.85rem; font-weight: 800; color: #1a2a3a;">تسليم عهدة</span>
-                    </a>
-                {% else %}
-                    <div class="alert alert-dark text-center p-2 mb-0" style="background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.75rem; color: #fff; width: 100%;">
-                        العهدة مع: <b>{{ d.op_name }}</b>
-                    </div>
-                {% endif %}
-
-                <!-- حل مشكلة أزرار الجرد: جعلهم بعرض كامل وتحت بعض أو جنب بعض بتناسق -->
-                <div class="d-flex gap-2" style="width: 100% !important; display: flex !important;">
-                    <button type="button" onclick="location.href='{% url 'start_marine_inventory' %}'"
-                            class="btn shadow-sm"
-                            style="background-color: #d4af37; color: #1a2a3a; font-size: 0.75rem; border: none; border-radius: 8px; padding: 10px 0; flex: 1 !important; font-weight: 800;">
-                        جرد
-                    </button>
-                    <button type="button" onclick="location.href='{% url 'marine_inventory_list' %}'"
-                            class="btn btn-dark shadow-sm"
-                            style="font-size: 0.75rem; border: 1px solid #d4af37; border-radius: 8px; padding: 10px 0; flex: 1 !important; color: #d4af37; font-weight: 800;">
-                        سجل
-                    </button>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-                    <!-- الكروت السفلية تابعة لكل كراكة -->
-                    <div class="cards-grid mt-3">
-                        <div class="card-item">
-                            <i class="fas fa-gas-pump text-danger"></i>
-                            <h5>FUEL MONITOR</h5>
-                            <a href="{% url 'fuel_report' %}" class="btn btn-sm btn-outline-danger shadow-sm">
-                                <i class="fas fa-gas-pump me-1"></i> ميزان السولار العام
-                            </a>
+                        <!-- مؤشر السولار اللحظي (أعلى اليمين الآن ليطابق التنسيق العربي) -->
+                        <div class="position-absolute top-0 end-0 p-2" style="z-index: 5;">
+                            <div class="bg-white bg-opacity-75 rounded-pill px-2 py-1 border shadow-sm d-flex align-items-center" style="direction: ltr !important;">
+                                <span class="status-bulb bg-{{ d.fuel_alert }} me-1"></span>
+                                <small class="fw-bold text-navy" style="font-size: 0.65rem; font-family:sans-serif;">{{ d.current_fuel }} L</small>
+                            </div>
                         </div>
-                        <div class="card-item">
-                            <i class="fas fa-file-contract text-info"></i>
-                            <h5>REPORTS</h5>
-                            <a href="/reports/" class="btn-go" style="background:#17a2b8;">View All</a>
-                        </div>
-                        <div class="card-item">
-                            <i class="fas fa-chart-pie text-success"></i>
-                            <h5>ANALYTICS</h5>
-                            <a href="/analytics/" class="btn-go" style="background:#28a745;">Dashboard</a>
+
+                        <div class="row align-items-center m-0 p-0" style="width: 100% !important; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;">
+
+                            <!-- [الجانب الأيمن الجديد]: الهوية الفنية وبيانات الاتصال باللغة العربية (RTL) -->
+                            <div style="width: 55% !important; text-align: right; direction: rtl !important;">
+                                <div class="d-flex flex-column gap-2 mt-2">
+                                    <h3 class="mb-0 fw-bold text-white" style="font-size: 1.3rem; letter-spacing: 0.5px;">{{ d.name }}</h3>
+
+                                    <div class="d-flex align-items-center gap-2 mb-1" style="display: flex !important; flex-direction: row !important;">
+                                        <div class="status-dot-animated" style="width: 9px !important; height: 9px !important; border-radius: 50% !important; display: inline-block !important; flex-shrink: 0; background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %}; margin-left: 8px;"></div>
+                                        <span style="color: #fff; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">{{ d.status_text }}</span>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2 mt-1">
+                                        <a href="tel:{{ d.vessel_phone }}" class="text-decoration-none d-flex align-items-center gap-2" style="width:fit-content;">
+                                            <i class="fas fa-ship text-gold" style="font-size: 0.8rem;"></i>
+                                            <span style="color: #fff; font-size: 0.85rem; border-bottom: 1px solid #d4af37; white-space: nowrap;">تواصل مع الكراكة</span>
+                                        </a>
+
+                                        <div class="pt-2 border-top border-secondary border-opacity-25 d-flex flex-column gap-1">
+                                            <span class="text-white-50 fw-bold" style="font-size: 0.85rem; display: block;">كابتن الوردية: {{ d.op_name }}</span>
+                                            <a href="tel:{{ d.op_phone }}" class="text-decoration-none d-flex align-items-center gap-2" style="width:fit-content;">
+                                                <i class="fas fa-phone-alt text-success" style="font-size: 0.8rem;"></i>
+                                                <span style="color: #fff; font-size: 0.85rem; border-bottom: 1px solid #28a745; white-space: nowrap;">تواصل مع المشغل</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- [الجانب الأيسر الجديد]: أزرار التحكم وجرد البحرية المخصصة (RTL ومحاذاة لليزار للـ التوازن) -->
+                            <div style="width: 45% !important; direction: rtl !important; text-align: left;">
+                                {% if d.can_add %}
+                                <div class="d-flex flex-column gap-2 me-auto" style="width: 175px !important; margin-left: auto; margin-right: 0;">
+                                    {% if d.is_handed_over %}
+                                        <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                            <span style="font-size: 0.85rem; font-weight: 800;">استلام عهدة</span>
+                                        </a>
+                                    {% elif d.is_owner %}
+                                        {% if d.status_code == 'active' %}
+                                            <a href="{% url 'quick_action' d.object.id 'stop' %}" class="btn-action btn-stop w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                                <span style="font-size: 0.85rem; font-weight: 800;">تسجيل توقف</span>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                                <span style="font-size: 0.85rem; font-weight: 800;">بدء تشغيل</span>
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'quick_action' d.object.id 'handover' %}" class="btn-action btn-handover w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                            <span style="font-size: 0.85rem; font-weight: 800; color: #1a2a3a;">تسليم عهدة</span>
+                                        </a>
+                                    {% endif %}
+
+                                    <!-- حل مشكلة أزرار الجرد: جعلهم بعرض كامل وتحت بعض أو جنب بعض بتناسق -->
+                                    <div class="d-flex gap-2" style="width: 100% !important; display: flex !important;">
+                                        <button type="button" onclick="location.href='{% url 'start_marine_inventory' %}'"
+                                                class="btn shadow-sm"
+                                                style="background-color: #d4af37; color: #1a2a3a; font-size: 0.75rem; border: none; border-radius: 8px; padding: 10px 0; flex: 1 !important; font-weight: 800;">
+                                            جرد
+                                        </button>
+                                        <button type="button" onclick="location.href='{% url 'marine_inventory_list' %}'"
+                                                class="btn btn-dark shadow-sm"
+                                                style="font-size: 0.75rem; border: 1px solid #d4af37; border-radius: 8px; padding: 10px 0; flex: 1 !important; color: #d4af37; font-weight: 800;">
+                                            سجل
+                                        </button>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-dark text-center p-2 mb-0" style="background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.75rem; color: #fff; width: 100%; direction: rtl !important;">
+                                    الوردية مفعلة مع: <b>{{ d.op_name }}</b>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -357,109 +220,92 @@
         </div>
     </div>
 
-            <!-- المحتوى العام للمشروع (خارج حلقة الكراكات) -->
-            <div class="container mt-4">
-                <img src="{% static 'images/project.jpeg' %}" class="project-banner shadow mb-5">
-                <div class="cards-grid">
-                    <div class="card-item">
-                        <i class="fas fa-screwdriver-wrench"></i>
-                        <h5>PIPE FIGHTER</h5>
-                        <!-- تم تغيير الرابط هنا ليفتح الفورم المطور بدل الأدمين -->
-                        <a href="{% url 'pipe_report' %}" class="btn-go" style="background:var(--navy);">بدء تقرير الخط</a>
-                    </div>
-                    <div class="card-item">
-                        <i class="fas fa-warehouse text-warning"></i>
-                        <!-- في كارت INVENTORY -->
-                    <h5 class="fw-bold">INVENTORY</h5>
-                        <a href="{% url 'land_inventory' %}" class="btn-go" style="background:var(--navy);">جرد البر</a>
+    <!-- 4. سكشن كروت التحكم والعمليات الميدانية العامة (الـ 6 كروت الكبار المفتحة والبارزة بخلفية بيضاء شيك) -->
+    <div class="container mt-4 mb-5">
+        <img src="{% static 'images/project.jpeg' %}" class="project-banner shadow mb-4" alt="Project Banner">
+        
+        <div class="cards-grid">
+            <!-- 1. كارت السولار والمحروقات العام للشركة -->
+            <div class="card-item" style="border-top: 5px solid #dc3545;">
+                <i class="fas fa-gas-pump text-danger"></i>
+                <h5 class="fw-bold">FUEL MONITOR</h5>
+                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي</p>
+                <a href="{% url 'fuel_report' %}" class="btn-go" style="background:#dc3545;">فتح ميزان السولار</a>
+            </div>
 
-                        <a href="{% url 'site_inventory_view' %}" class="btn btn-outline-primary shadow-sm ms-2">
-                            <i class="fas fa-print me-1"></i> طباعة كشف جرد المخزن
-                        </a>
-                    </div>
-                    <div class="card-item">
-                        <i class="fas fa-address-book text-primary"></i>
-                        <h5>STAFF DIRECTORY</h5>
-                        <a href="/admin/core/staff/" class="btn-go" style="background:#0d6efd;">Directory</a>
-                    </div>
+            <!-- 2. كارت سجل التقارير المجمعة الـ 24 ساعة -->
+            <div class="card-item" style="border-top: 5px solid #17a2b8;">
+                <i class="fas fa-file-contract text-info"></i>
+                <h5 class="fw-bold">DAILY REPORTS</h5>
+                <p class="text-muted small mb-3">مراجعة وفحص أرشيف ومحاضر التقارير اليومية المجمعة الـ 24 ساعة للمشروع</p>
+                <a href="/reports/" class="btn-go" style="background:#17a2b8;">عرض السجل العام</a>
+            </div>
+
+            <!-- 3. كارت لوحة تحليل الأداء والفرز الفني والمعدلات الشهري -->
+            <div class="card-item" style="border-top: 5px solid #28a745;">
+                <i class="fas fa-chart-pie text-success"></i>
+                <h5 class="fw-bold">ANALYTICS</h5>
+                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية</p>
+                <a href="/analytics/" class="btn-go" style="background:#28a745;">لوحة فرز وتحليل الأداء</a>
+            </div>
+
+            <!-- 4. كارت صيانة وتشغيل خطوط الطرد وعمليات الردم (البايب فيتر) -->
+            <div class="card-item" style="border-top: 5px solid #198754;">
+                <i class="fas fa-screwdriver-wrench text-success"></i>
+                <h5 class="fw-bold">PIPE FIGHTER</h5>
+                <p class="text-muted small mb-3">ورديات خطوط الطرد والأطوال وعمليات صيانة الردم والاستوك خارج الخدمة</p>
+                <a href="{% url 'pipe_report' %}" class="btn-go" style="background:#198754;">بدء تقرير الخط</a>
+            </div>
+
+            <!-- 5. كارت جرد مخزن البر والموقع الموحد المطور بـ زراريه -->
+            <div class="card-item" style="border-top: 5px solid var(--navy);">
+                <i class="fas fa-warehouse text-primary" style="color:var(--navy) !important;"></i>
+                <h5 class="fw-bold">INVENTORY (SITE)</h5>
+                <p class="text-muted small mb-3">تسجيل جرد ومطالعة أرصدة عهدة مخزن الموقع البري ومهمات الحركة والتشغيل</p>
+                <div class="d-flex gap-2 justify-content-center mt-2" style="width:100%;">
+                    <a href="{% url 'land_inventory' %}" class="btn btn-sm btn-primary fw-bold rounded-pill py-2" style="background:var(--navy); border:none; width:50%; font-size:0.75rem;">جرد البر</a>
+                    <a href="{% url 'site_inventory_view' %}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill py-2" style="width:50%; font-size:0.75rem;"><i class="fas fa-print me-1"></i>كشف</a>
                 </div>
             </div>
 
-    <script src="https://cloudflare.com"></script>
-
-   <script>
-    // 300000 ميلي ثانية تعادل 5 دقائق
-    var refreshTime = 300000;
-
-    var timeout = setTimeout(refresh, refreshTime);
-
-    // إذا تحرك الماوس أو ضغط المستخدم زر، نعيد عد الـ 5 دقائق من جديد
-    window.onmousemove = resetTimer;
-    window.onmousedown = resetTimer;
-    window.onclick = resetTimer;
-    window.onscroll = resetTimer;
-    window.onkeypress = resetTimer;
-
-    function resetTimer() {
-        clearTimeout(timeout);
-        timeout = setTimeout(refresh, refreshTime);
-    }
-
-    function refresh() {
-        location.reload();
-    }
-</script>
-</div>
-<!-- توقيع كابتن ابراهيم اسماعيل - نسخة الخلفية الغامقة -->
-<footer class="final-signature no-print">
-    <div class="sig-wrapper">
-        <div class="sig-divider"></div>
-        <div class="sig-label">تم تطوير وتصميم النظام بواسطة</div>
-        <div class="sig-name">كابتن / ابراهيم اسماعيل</div>
-        <div class="sig-rights">2026 &copy; جميع الحقوق محفوظة لشركة قاصد خير</div>
+            <!-- 6. كارت دليل كادر موظفي ومهندسي وفنيي الشركة بالموقع -->
+            <div class="card-item" style="border-top: 5px solid #0d6efd;">
+                <i class="fas fa-address-book text-primary"></i>
+                <h5 class="fw-bold">STAFF DIRECTORY</h5>
+                <p class="text-muted small mb-3">دليل أسماء وهواتف وجروبات كباتن الكراكة، والمشرفين، والمهندسين بالموقع</p>
+                <a href="/admin/core/staff/" class="btn-go" style="background:#0d6efd;">فتح دليل الهواتف</a>
+            </div>
+        </div>
     </div>
-</footer>
 
-<style>
-    .final-signature {
-        width: 100%;
-        margin-top: 100px;
-        padding-bottom: 50px;
-        display: block !important;
-        clear: both;
-    }
-    .sig-wrapper {
-        text-align: center !important;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    .sig-divider {
-        width: 80px;
-        height: 3px;
-        background-color: #d4af37; /* ذهبي */
-        margin: 0 auto 15px;
-    }
-    .sig-label {
-        color: #ccd1d6 !important; /* رمادي فاتح جداً عشان يبان ع الأزرق */
-        font-size: 1rem !important;
-        margin-bottom: 5px !important;
-        display: block !important;
-        opacity: 0.8;
-    }
-    .sig-name {
-        color: #ffffff !important; /* أبيض ناصع */
-        font-size: 2.5rem !important; /* كبرنا الخط كمان */
-        font-weight: 900 !important;
-        margin: 5px 0 !important;
-        display: block !important;
-        text-shadow: 2px 2px 10px rgba(0,0,0,0.5); /* ضل عشان يبرز أكتر */
-    }
-    .sig-rights {
-        color: #d4af37 !important; /* السنة بالذهبي */
-        font-size: 0.85rem !important;
-        margin-top: 10px !important;
-        display: block !important;
-        letter-spacing: 1px;
-    }
-</style>
+    <!-- 5. توقيع كابتن إبراهيم إسماعيل الفخم وثيق الصلة والتناسق بالخلفية الكحلي الغامقة للـ body -->
+    <footer class="final-signature no-print">
+        <div class="sig-wrapper">
+            <div class="sig-divider"></div>
+            <div class="sig-label">تم تطوير وتصميم وهندسة النظام باحترافية كاملة بواسطة</div>
+            <div class="sig-name">كابتن / إبراهيم إسماعيل</div>
+            <div class="sig-rights">2026 &copy; جميع الحقوق محفوظة لشركة قاصد خير للمقاولات</div>
+        </div>
+    </footer>
+
+    <!-- سكريبت التحديث التلقائي لمنع خمول السيرفر (5 دقائق) -->
+    <script>
+        var refreshTime = 300000; 
+        var timeout = setTimeout(refresh, refreshTime);
+
+        window.onmousemove = resetTimer;
+        window.onmousedown = resetTimer;
+        window.onclick = resetTimer;
+        window.onscroll = resetTimer;
+        window.onkeypress = resetTimer;
+
+        function resetTimer() {
+            clearTimeout(timeout);
+            timeout = setTimeout(refresh, refreshTime);
+        }
+        function refresh() {
+            location.reload();
+        }
+    </script>
 </body>
+</html>

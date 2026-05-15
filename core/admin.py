@@ -8,7 +8,7 @@ from .models import (
     SupportEquipment, FuelMovement, MarineInventoryDetail, MarineInventoryReport
 )
 
-# إعدادات واجهة الأدمين
+# إعدادات واجهة الأدمين الرسمية للشركة
 admin.site.site_header = "شركة قاصد خير للمقاولات"
 admin.site.site_title = "بوابة إدارة المشاريع"
 admin.site.index_title = "لوحة التحكم والعمليات"
@@ -16,7 +16,7 @@ admin.site.index_title = "لوحة التحكم والعمليات"
 def is_super(request):
     return request.user.is_active and request.user.is_superuser
 
-# دالة الحماية لمنع تعارض الـ AlreadyRegistered وتصفير الذاكرة
+# دالة الحماية الفولاذية لمنع تضارب الـ AlreadyRegistered وتصفير الذاكرة المهنجة للسيرفر
 def safe_register(model, admin_class=None):
     try:
         if admin.site.is_registered(model):
@@ -29,7 +29,7 @@ def safe_register(model, admin_class=None):
         pass
 
 # ==========================================
-# 1. إدارة ورديات الكراكة (أزرار الكراكة)
+# 1. إدارة ورديات الكراكة (محرك أزرار الكراكة والحساب اللحظي)
 # ==========================================
 class WorkShiftAdmin(admin.ModelAdmin):
     list_display = ('operator', 'get_dredger', 'status', 'fuel_usage', 'main_engine_hours')
@@ -111,7 +111,6 @@ class WorkShiftAdmin(admin.ModelAdmin):
 
     def get_dredger(self, obj): return obj.report_24h.dredger.name if obj.report_24h else "N/A"
     get_dredger.short_description = 'الكراكة'
-
 # ==========================================
 # 2. إدارة عمليات الـ Pipe Fighter (الـ 8 أزرار)
 # ==========================================
@@ -141,7 +140,6 @@ class InventoryItemAdmin(admin.ModelAdmin):
         'show_in_site', 'show_in_marine', 'show_in_pipe', 
         'quantity_site', 'quantity_marine', 'quantity_pipe'
     )
-    # تنظيف الفلتر تماماً: شلنا الـ 3 مربعات المسببة للزحمة واكتفينا بالقسم عشان يرجع الجدول مفرود واسع
     list_filter = ('category',) 
     search_fields = ('name',)
 
@@ -153,7 +151,21 @@ class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'group', 'role')
 
 # ==========================================
-# 4. التسجيل الفولاذي الشامل لكل الموديلات القديمة والجديدة لمنع التكرار
+# 4. منع تكرار الكروت وتخصيص جداول الكراكات والتقارير المجمعة للشركة
+# ==========================================
+class DredgerAdmin(admin.ModelAdmin):
+    # عرض اسم الكراكة فقط لمنع التعارض مع الحقول الممسوحة أو المختلفة محلياً
+    list_display = ('name',)
+    def has_module_permission(self, request): return True
+
+class DailyProjectReportAdmin(admin.ModelAdmin):
+    # الاعتماد على حقل الـ dredger الأساسي المشترك، وحذف الحقول التاريخية المتغيرة
+    list_display = ('dredger',)
+    list_filter = ('dredger',)
+    search_fields = ('dredger__name',)
+
+# ==========================================
+# 5. التسجيل الفولاذي الشامل والآمن لجميع الموديلات لمنع التكرار نهائياً
 # ==========================================
 safe_register(WorkShift, WorkShiftAdmin)
 safe_register(PipeFighterOperations, PipeFighterAdmin)
@@ -161,13 +173,14 @@ safe_register(InventoryItem, InventoryItemAdmin)
 safe_register(MarineInventoryReport, MarineInventoryReportAdmin)
 safe_register(Staff, StaffAdmin)
 
-# إرجاع كافة الموديلات المفقودة للوحة الإدارة فوراً
-safe_register(Dredger)
-safe_register(DailyProjectReport)
+# التسجيل المطور المانع للزحمة والتكرار عند إضافة كراكة ثانية أو ثالثة
+safe_register(Dredger, DredgerAdmin)
+safe_register(DailyProjectReport, DailyProjectReportAdmin)
+
+# إرجاع كافة الموديلات المتبقية للوحة الإدارة فوراً في مساراتها الرسمية المستقلة
 safe_register(WeeklyRotation)
 safe_register(NewsTicker)
 safe_register(AdminVault)
 safe_register(MarineInventoryDetail)
 safe_register(SupportEquipment)
 safe_register(FuelMovement)
-safe_register(PipeFighterExtraItem)

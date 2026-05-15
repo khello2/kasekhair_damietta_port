@@ -311,24 +311,6 @@ class InventoryCategory(models.TextChoices):
     OTHER = 'أخرى', 'أخرى'
     # (ملاحظة: شلنا المواسير بناءً على طلبك من جرد البحرية)
 
-# في core/models.py
-
-
-# موديل جرد بحرية الكراكة (التقرير الأسبوعي المنفصل)
-class MarineInventoryReport(models.Model):
-    date = models.DateTimeField(default=timezone.now, verbose_name="تاريخ وساعة الجرد")
-    operator = models.ForeignKey('Staff', on_delete=models.CASCADE, verbose_name="المشغل المسؤول")
-    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات الجرد")
-
-    class Meta:
-        verbose_name = "جرد مخزن البحرية"
-        verbose_name_plural = "تقارير جرد البحرية الأسبوعية"
-
-    def __str__(self):
-        return f"جرد بحرية بتاريخ {self.date.strftime('%Y-%m-%d')}"
-
-
-
 class AdminVault(models.Model):
     staff_name = models.CharField(max_length=100, verbose_name="اسم الموظف")
     username = models.CharField(max_length=50, verbose_name="اسم المستخدم")
@@ -434,13 +416,16 @@ class InventoryCategory(models.Model):
 
 
 class MarineInventoryReport(models.Model):
-    # السطرين دول أهم حاجة للفصل
     REPORT_TYPES = [('marine', 'جرد كراكة'), ('site', 'جرد موقع')]
     report_type = models.CharField(max_length=10, choices=REPORT_TYPES, default='marine', verbose_name="نوع الجرد")
 
     date = models.DateTimeField(auto_now_add=True)
     operator = models.ForeignKey('Staff', on_delete=models.CASCADE)
     notes = models.TextField(blank=True, null=True)
+    
+    # 🏗️ السطر الفولاذي الجديد لربط محضر الجرد بالكراكة المستهدفة ومنع الـ TypeError
+    dredger = models.ForeignKey('Dredger', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="الكراكة")
+
 
 class InventoryItem(models.Model):
     name = models.CharField(max_length=100, verbose_name="اسم الصنف")
