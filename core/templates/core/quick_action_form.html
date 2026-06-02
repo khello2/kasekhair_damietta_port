@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة قاصد خير - لوحة الإدخال الموحدة</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --success: #28a745; --danger: #dc3545; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; background: #f4f6f9; margin: 0; padding: 10px; }
+        .action-card { background: white; max-width: 550px; margin: 10px auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid var(--navy); }
+        .header-title { color: var(--navy); font-size: 1.2rem; font-weight: 800; text-align: center; margin-bottom: 15px; }
+        .form-label { font-weight: 700; color: var(--navy); display: block; margin-bottom: 5px; font-size: 0.85rem; }
+        .form-control, .form-select { width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: bold; box-sizing: border-box; text-align: center; color: var(--navy); margin-bottom: 12px; }
+        .kased-btn-group { width: 100%; text-align: center; padding: 10px 0; margin-bottom: 15px; display: flex; gap: 5px; justify-content: center; }
+        .kased-btn { background: #f1f5f9; color: var(--navy); border: 2px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; flex: 1; transition: 0.2s; }
+        .kased-btn.active { background: var(--navy); color: var(--gold); border-color: var(--gold); }
+        .hidden-section { display: none !important; }
+        .btn-submit { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1.05rem; font-weight: bold; color: white; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-start { background: var(--success); }
+        .btn-stop { background: var(--danger); }
+        .btn-handover { background: var(--navy); color: var(--gold); border: 2px solid var(--gold); }
+    </style>
+</head>
+<body>
+
+<div class="action-card">
+    <div class="header-title">
+        <i class="fas fa-ship text-warning"></i> {{ dredger.name }} <br>
+        <span style="font-size: 0.95rem; color: #555; font-weight: bold;">
+            📊 لوحة تسجيل حركات وعمليات الوردية المرنة
+        </span>
+    </div>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label class="form-label">تاريخ الحركة:</label>
+                <input type="date" name="action_date" value="{{ current_date }}" class="form-control" required>
+            </div>
+            <div style="flex: 1;">
+                <label class="form-label">ساعة الحركة:</label>
+                <input type="time" name="action_time" value="{{ current_time }}" class="form-control" required>
+            </div>
+        </div>
+
+        <!-- 🛡️ محرك التلقيم القياسي الصارم: يرسل الرموز القصيرة المقبولة عسكرياً جوه قاعدة بياناتك لمنع تصفير الشاشات -->
+        <label class="form-label">حالة أو سبب الإجراء الحالي للكراكة:</label>
+        <select name="status_choice" class="form-select" required>
+            <option value="active" {% if action_type == 'start' %}selected{% endif %}>تشغيل فعلي (إنتاج)</option>
+            <option value="breakdown_mech" {% if action_type == 'stop' %}selected{% endif %}>عطل ميكانيكي</option>
+            <option value="breakdown_elec">عطل كهربائي</option>
+            <option value="breakdown_hydrulic">عطل هيدروليك</option>
+            <option value="welding">أعمال لحام</option>
+            <option value="maintenance">صيانة دورية / عمرة</option>
+            <option value="anchors">نقل مخاطيف</option>
+            <option value="maneuver">تشفيت / تغيير موقع</option>
+            <option value="pipeline_washed">غسيل خط/ضخ مياه</option>
+            <option value="pipeline">فك / تركيب / إصلاح خط الطرد</option>
+            <option value="weather">توقف بسبب سوء الأحوال الجوية</option>
+            <option value="waiting_barge">انتظار صندل / تموين</option>
+            <option value="safety">توقف لأسباب تتعلق بالسلامة</option>
+            <option value="inspection">تفتيش / زيارة رسمية</option>
+            <option value="handover" {% if action_type == 'handover' %}selected{% endif %}>استلام وتسليم وردية</option>
+            <option value="shift_end">نهاية وردية ( 12 ساعة)</option>
+            <option value="obstruction">عوائق بالتربة</option>
+            <option value="stone_box">فتح صندوق الحجارة</option>
+            <option value="cutter_check">التشييك على الكتر</option>
+            <option value="pipe_change">تغيير ماسورة بالخط</option>
+            <option value="rubber_change">تغيير رابر بالخط</option>
+            <option value="other">توقف لأسباب أخرى</option>
+        </select>
+
+
+        <!-- لوحة الزراير الذكية للتفتيح المرن -->
+        <div class="kased-btn-group">
+            <button type="button" class="kased-btn" onclick="toggleSec('sec_fuel', this)">⛽ الديزل</button>
+            <button type="button" class="kased-btn" onclick="toggleSec('sec_engines', this)">⚙️ العدادات</button>
+            <button type="button" class="kased-btn" onclick="toggleSec('sec_prod', this)">📏 الإنتاجية</button>
+            <button type="button" class="kased-btn" onclick="toggleSec('sec_geo', this)">📍 الإحداثيات</button>
+        </div>
+
+        <div id="sec_fuel" class="hidden-section">
+            <label class="form-label">رصيد السولار الحالي الحقيقي (لتر):</label>
+            <input type="number" step="0.01" name="fuel_val" value="{{ inherited.fuel }}" class="form-control">
+        </div>
+
+        <div id="sec_engines" class="hidden-section">
+            <label class="form-label">قراءة قاطع الماكينة الرئيسية الحالي:</label>
+            <input type="number" step="0.01" name="main_engine_val" value="{{ inherited.main }}" class="form-control">
+            
+            <label class="form-label">قراءة قاطع الماكينة المساعدة الحالي:</label>
+            <input type="number" step="0.01" name="aux_engine_val" value="{{ inherited.aux }}" class="form-control">
+        </div>
+
+        <div id="sec_prod" class="hidden-section">
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label class="form-label">العمق قبل الحساب:</label>
+                    <input type="number" step="0.01" name="depth_before" value="{{ inherited.depth }}" class="form-control">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">العمق بعد الحساب:</label>
+                    <input type="number" step="0.01" name="depth_after" value="{{ inherited.depth }}" class="form-control">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label class="form-label">أمتار التقدم بالوردية:</label>
+                    <input type="number" step="0.1" name="progress_meters" placeholder="0" class="form-control">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">عرض الحارة / التأرجح:</label>
+                    <input type="number" step="0.1" name="swing_width" value="{{ inherited.swing }}" class="form-control">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label class="form-label">طول خط عائم (م):</label>
+                    <input type="number" step="0.1" name="floating_line" value="{{ inherited.floating }}" class="form-control">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">طول خط أرضي (م):</label>
+                    <input type="number" step="0.1" name="land_line" value="{{ inherited.land }}" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <div id="sec_geo" class="hidden-section">
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label class="form-label">الإحداثي الشرقي الحالي (E):</label>
+                    <input type="number" step="0.001" name="east_val" value="{{ inherited.east }}" class="form-control">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">الإحداثي الشمالي الحالي (N):</label>
+                    <input type="number" step="0.001" name="north_val" value="{{ inherited.north }}" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <label class="form-label">بيان الأعمال والملاحظات يدويًا:</label>
+        <textarea name="notes" rows="2" class="form-control" placeholder="اكتب الملاحظات هنا..." style="text-align: right; height: 60px;"></textarea>
+
+        {% if action_type == 'start' %}
+            <button type="submit" class="btn-submit btn-start"><i class="fas fa-check-double"></i> تأكيد وحفظ الوردية لايف</button>
+        {% elif action_type == 'handover' %}
+            <button type="submit" class="btn-submit btn-handover"><i class="fas fa-flag-checkered"></i> تأكيد تسليم العهدة وإغلاق الوردية</button>
+        {% else %}
+            <button type="submit" class="btn-submit btn-stop"><i class="fas fa-stop"></i> تسجيل الحركة وحفظ الأرصدة</button>
+        {% endif %}
+        
+        <a href="{% url 'home' %}" style="display:block; text-align:center; color:#64748b; font-weight:bold; text-decoration:none; margin-top:12px; font-size:0.85rem;"><i class="fas fa-arrow-right"></i> إلغاء والعودة للرئيسية</a>
+    </form>
+</div>
+
+<script>
+    function toggleSec(id, btn) {
+        var sec = document.getElementById(id);
+        if(sec) {
+                        sec.classList.toggle('hidden-section');
+            btn.classList.toggle('active');
+        }
+    }
+</script>
+</body>
+</html>
+

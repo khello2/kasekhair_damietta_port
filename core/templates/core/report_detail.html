@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير فني - {{ report.date_started }}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ report.dredger.name }} Operation Report - {{ report.date_started|date:"d-m-Y" }}</title>
 
     <!-- المكاتب الأساسية (Bootstrap 5.3) لضمان عمل الأزرار -->
     <link href="https://jsdelivr.net" rel="stylesheet">
@@ -60,24 +60,36 @@
 
         /* تنسيق الطباعة */
         @media print {
-            .no-print, .btn-toggle-details, .collapse:not(.show), #detailedLog { display: none !important; }
+            .no-print, .btn-toggle-details, .collapse:not(.show) { display: none !important; }
+            /* حذفنا #detailedLog من الإخفاء الإجباري هنا */
             .report-paper { box-shadow: none; border: none; width: 100%; margin: 0; padding: 10px; }
             .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
+
+        /* كلاس خاص بالطباعة المخصصة لجلسات المشغلين فقط */
+        .custom-print-active #detailedLog { display: block !important; }
+        .custom-print-active .report-paper > *:not(#detailedLog) { display: none !important; }
+        .custom-print-active .no-print, .custom-print-active .btn-toggle-details { display: none !important; }
+
     </style>
 </head>
 <body>
 
     <div class="container no-print mt-4 d-flex justify-content-between">
         <a href="{% url 'reports_list' %}" class="btn btn-dark shadow-sm"><i class="fas fa-arrow-right me-1"></i> الأرشيف</a>
-        <button onclick="window.print()" class="btn btn-primary shadow-sm px-4"><i class="fas fa-print me-1"></i> طباعة المختصر</button>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary shadow-sm px-4 me-2"><i class="fas fa-print me-1"></i> طباعة المختصر</button>
+            <!-- الزر الجديد المخصص لتفاصيل الجلسات -->
+            <button onclick="printDetailedLogOnly()" class="btn btn-success shadow-sm px-4"><i class="fas fa-user-clock me-1"></i> طباعة تفاصيل المشغلين</button>
+        </div>
     </div>
+
 
     <div class="report-paper">
         <!-- 1. الترويسة -->
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 3px double var(--navy);">
             <div class="text-end">
-                <div style="color: var(--navy); font-weight: 900; font-size: 1.5rem;">شركة قاصد خير للمقاولات</div>
+                <div style="color: var(--navy); font-weight: 900; font-size: 1.5rem;">شركة قاصد خير للتوريدات العموميه والمقاولات</div>
                 <div class="mt-1 fw-bold text-primary small">مشروع ردم الحاجز الشرقي - ميناء دمياط</div>
             </div>
             <img src="{% static 'images/logo.png' %}" width="90" alt="Logo">
@@ -103,19 +115,32 @@
             </div>
         </div>
 
-        <!-- 3. منطقة الكروت المحدثة (تنسيق مجمع) -->
+        <!-- 3. منطقة الكروت المحدثة (تنسيق مجمع ومطور) -->
         <div class="stat-grid">
-            <!-- الصف الأول: التقدم وساعات العمل -->
+            <!-- الصف الأول: التقدم وإجمالي المتر المكعب المورث من السيرفر -->
             <div class="stat-box" style="border-top-color: var(--teal);">
                 <div class="stat-label">إجمالي التقدم</div>
                 <div class="stat-number">{{ total_meters }} م</div>
             </div>
-            <div class="stat-box" style="border-top-color: #28a745;">
-                <div class="stat-label">ساعات التشغيل</div>
-                <div class="stat-number text-success">{{ total_work_hours }}</div>
+            <div class="stat-box" style="border-top-color: var(--gold, #d4af37);">
+                <div class="stat-label">إجمالي الكمية بالمكعب</div>
+                <!-- 🛡️ المقص البرمجي الذكي: يظهر الرقم الفعلي أو يحجبه بناءً على رغبة الإدارة -->
+                {% if report.show_quantity_in_report %}
+                    <div class="stat-number text-warning" style="font-weight: 900; color: #1a2a3a !important;">{{ total_m3|default:"0" }} م³</div>
+                {% else %}
+                    <div class="stat-number text-muted" style="font-weight: bold; font-size: 1.15rem; color: #6c757d !important; padding-top: 5px;">قيد المراجعة </div>
+                {% endif %}
             </div>
 
-            <!-- الصف الثاني: محاسبة السولار (المطور) وساعات التوقف -->
+
+            <!-- الصف الثاني: كارت الساعات المدمج ومحاسبة السولار -->
+            <div class="stat-box" style="border-top-color: #28a745;">
+                <div class="stat-label mb-2">بيان الساعات (عمل / توقف)</div>
+                <div class="row g-0 align-items-center text-center">
+                    <div class="col-6 border-end"><small class="text-success d-block small-label fw-bold">تشغيل</small><b style="font-size: 1.35rem;">{{ total_work_hours }}</b></div>
+                    <div class="col-6 text-danger"><small class="text-danger d-block small-label fw-bold">توقف</small><b style="font-size: 1.35rem;">{{ total_stop_hours }}</b></div>
+                </div>
+            </div>
             <div class="stat-box" style="border-top-color: #dc3545;">
                 <div class="stat-label mb-2">محاسبة السولار (24 ساعة)</div>
                 <div class="row g-0 align-items-center">
@@ -124,10 +149,6 @@
                     <div class="col-3 border-end"><small class="text-muted d-block small-label">نهاية</small><b>{{ fuel_end_val }}</b></div>
                     <div class="col-3 text-danger"><small class="d-block small-label">الاستهلاك</small><b>{{ total_fuel_usage }}</b></div>
                 </div>
-            </div>
-            <div class="stat-box" style="border-top-color: #6c757d;">
-                <div class="stat-label">ساعات التوقف</div>
-                <div class="stat-number">{{ total_stop_hours }}</div>
             </div>
 
             <!-- الصف الثالث: الماكينة الرئيسية والمساعدة -->
@@ -164,7 +185,6 @@
                 </div>
             </div>
         </div>
-
         <!-- 4. تسلسل العمليات -->
         <div class="bg-light p-3 rounded mb-4 border">
             <h6 class="fw-bold mb-3 text-navy border-bottom pb-1"><i class="fas fa-history me-1"></i> تسلسل العمليات والأحداث:</h6>
@@ -250,6 +270,19 @@
         }
     };
 </script>
+<script>
+function printDetailedLogOnly() {
+    // إضافة كلاس يظهر جدول المشغلين ويخفي بقية عناصر التقرير
+    document.body.classList.add('custom-print-active');
+    
+    // تشغيل أمر الطباعة للمتصفح
+    window.print();
+    
+    // إزالة الكلاس فوراً بعد إغلاق أو إلغاء نافذة الطباعة ليعود السيستم لطبيعته
+    document.body.classList.remove('custom-print-active');
+}
+</script>
+
 
 </body>
 </html>

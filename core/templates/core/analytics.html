@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير التحليلات الفنية الشامل | كابتن إبراهيم إسماعيل</title>
+    <title>تقرير التحليلات الفنية الشامل </title>
     <!-- تصحيح وتسريع تحميل روابط المكتبات الخارجية لمنع تجميد شاشة التحليل -->
     <link rel="stylesheet" href="cloudflare.com">
     <link rel="stylesheet" href="cloudflare.com">
@@ -50,40 +50,47 @@
 <header class="dashboard-header no-print">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-    <!-- شريط الفلترة الديناميكي المطور للكراكات المتعددة (يختفي بالطباعة تلقائياً) -->
+    <!-- شريط الفلترة الديناميكي المطور للساعات والتواريخ (يختفي بالطباعة تلقائياً) -->
     <div class="card-section no-print mb-4" style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-right: 6px solid var(--gold); direction: rtl !important;">
         <form method="GET" action="" class="row g-3 align-items-end">
-            <!-- 1. قائمة اختيار الكراكة الفاخرة للشركة -->
+            <!-- 1. اختيار الكراكة -->
             <div class="col-md-3">
-                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-ship text-warning me-1"></i> الكراكة المستهدفة:</label>
-                <select name="dredger_id" class="form-select fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px; font-size:0.95rem;">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.85rem;"><i class="fas fa-ship text-warning me-1"></i> الكراكة المستهدفة:</label>
+                <select name="dredger_id" class="form-select fw-bold text-center text-navy" style="height: 45px; border: 2px solid #cbd5e1; border-radius: 8px; font-size:0.9rem;">
                     {% for dr in all_dredgers %}
                         <option value="{{ dr.id }}" {% if dr.id == current_dredger.id %}selected{% endif %}>{{ dr.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <!-- 2. تاريخ البداية -->
+            <!-- 2. تاريخ وساعة البداية -->
             <div class="col-md-3">
-                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-primary me-1"></i> تاريخ بداية الفرز:</label>
-                <input type="date" name="start_date" value="{{ month_start }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.85rem;"><i class="fas fa-calendar-alt text-primary me-1"></i> من تاريخ وساعة:</label>
+                <div class="d-flex gap-1">
+                    <input type="date" name="start_date" value="{{ month_start }}" class="form-control fw-bold text-center text-navy" style="height: 45px; border: 2px solid #cbd5e1; border-radius: 8px; width:60%;">
+                    <input type="time" name="start_time" value="{{ start_time }}" class="form-control fw-bold text-center text-navy" style="height: 45px; border: 2px solid #cbd5e1; border-radius: 8px; width:40%;">
+                </div>
             </div>
-            <!-- 3. تاريخ النهاية -->
+            <!-- 3. تاريخ وساعة النهاية -->
             <div class="col-md-3">
-                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.9rem;"><i class="fas fa-calendar-alt text-success me-1"></i> تاريخ نهاية الفرز:</label>
-                <input type="date" name="end_date" value="{{ month_end }}" class="form-control fw-bold text-center text-navy" style="height: 48px; border: 2px solid #cbd5e1; border-radius: 8px;">
+                <label class="fw-bold mb-2" style="color: var(--navy); font-size: 0.85rem;"><i class="fas fa-calendar-alt text-success me-1"></i> إلى تاريخ وساعة:</label>
+                <div class="d-flex gap-1">
+                    <input type="date" name="end_date" value="{{ month_end }}" class="form-control fw-bold text-center text-navy" style="height: 45px; border: 2px solid #cbd5e1; border-radius: 8px; width:60%;">
+                    <input type="time" name="end_time" value="{{ end_time }}" class="form-control fw-bold text-center text-navy" style="height: 45px; border: 2px solid #cbd5e1; border-radius: 8px; width:40%;">
+                </div>
             </div>
             <!-- 4. زرار التحديث والفرز اللحظي -->
             <div class="col-md-3">
-                <button type="submit" class="btn btn-primary fw-bold w-100" style="height: 48px; background-color: var(--navy) !important; border: 2px solid var(--gold) !important; border-radius: 8px; color: var(--gold); font-size: 0.95rem; transition: 0.3s;">
+                <button type="submit" class="btn btn-primary fw-bold w-100" style="height: 45px; background-color: var(--navy) !important; border: 2px solid var(--gold) !important; border-radius: 8px; color: var(--gold); font-size: 0.9rem; transition: 0.3s;">
                     <i class="fas fa-sync-alt me-1"></i> تحديث وفحص المؤشرات
                 </button>
             </div>
         </form>
     </div>
 
+
             <h2 class="fw-bold mb-0">لوحة مؤشرات الأداء والإنتاجية التراكمية</h2>
             <!-- تعديل الرأسية لتعبر عن الشهر التاريخي بالكامل بدلاً من الأسبوع لمنع تصفير الوردية المجازة -->
-            <small class="text-gold fw-bold"><i class="fas fa-calendar-alt me-1"></i> فترة التحليل الفني (30 يوماً متصلة): من {{ month_start }} إلى {{ month_end }}</small>
+            <small class="text-gold fw-bold"><i class="fas fa-calendar-alt me-1"></i> فترة التحليل الفني (المدة المحددة ): من {{ month_start }} إلى {{ month_end }}</small>
         </div>
         <div class="d-flex gap-2">
             <button onclick="window.print()" class="btn btn-warning fw-bold px-4 rounded-pill shadow">
@@ -99,14 +106,14 @@
     <div class="row g-4 mb-5 text-center">
         <div class="col-md-4">
             <div class="stat-card">
-                <h6 class="text-muted fw-bold"><i class="fas fa-cubes text-primary me-1"></i> إجمالي إنتاج المكعبات (الشهر)</h6>
+                <h6 class="text-muted fw-bold"><i class="fas fa-cubes text-primary me-1"></i> إجمالي إنتاج المكعبات (المده المحدده)</h6>
                 <h2 class="fw-bold text-navy" style="font-size: 2.3rem;">{{ total_m3|floatformat:0 }}</h2>
                 <small class="text-secondary fw-bold">متر مكعب منفذ</small>
             </div>
         </div>
         <div class="col-md-4">
             <div class="stat-card">
-                <h6 class="text-muted fw-bold"><i class="fas fa-route text-success me-1"></i> إجمالي تقدم الخط (الشهر)</h6>
+                <h6 class="text-muted fw-bold"><i class="fas fa-route text-success me-1"></i> إجمالي تقدم الخط (المده المحدده)</h6>
                 <h2 class="fw-bold text-navy" style="font-size: 2.3rem;">{{ total_meters|floatformat:0 }}</h2>
                 <small class="text-secondary fw-bold">متر طولي مفرود</small>
             </div>
@@ -123,9 +130,9 @@
     <!-- 2. ميزان القوى والإنتاجية (مقارنة شاملة متصلة تضمن بقاء بيانات الشفت المريح) -->
     <div id="print-battle" class="mb-5">
         <div class="section-title">
-            <span style="color: #0a192f !important;"><i class="fas fa-balance-scale me-2"></i> ميزان القوى والإنتاجية الشهري ومعدلات الحرق</span>
+            <span style="color: #0a192f !important;"><i class="fas fa-balance-scale me-2"></i> ميزان القوى والإنتاجية للمده المحدده ومعدلات الحرق</span>
             <button onclick="printDiv('print-battle')" class="btn btn-sm btn-outline-primary no-print">
-                <i class="fas fa-print me-1"></i> طباعة ميزان الـ 30 يوماً فقط
+                <i class="fas fa-print me-1"></i> طباعة ميزان المده المحدده فقط
             </button>
         </div>
         
@@ -173,7 +180,7 @@
     <!-- 3. جدول المشغلين (حصاد الأداء والمساهمة ومعدل الوقود الشهري التراكمي) -->
     <div id="print-operators" class="page-break mb-5">
         <div class="section-title">
-            <span style="color: #0a192f !important;"><i class="fas fa-medal me-2"></i> حصاد كفاءة وأداء المشغلين الفني (ترتيب شهري تراكمي)</span>
+            <span style="color: #0a192f !important;"><i class="fas fa-medal me-2"></i> حصاد كفاءة وأداء المشغلين الفني (ترتيب تراكمي)</span>
             <button onclick="printDiv('print-operators')" class="btn btn-sm btn-outline-dark no-print">
                 <i class="fas fa-print me-1"></i> طباعة الترتيب الفردي فقط
             </button>
@@ -186,7 +193,9 @@
                         <th class="text-start">اسم كابتن الكراكة (المشغل)</th>
                         <th>المجموعة</th>
                         <th>إجمالي المكعبات</th>
+                        <th>إجمالي التقدم</th>
                         <th>معدل الإنتاج (م³/ساعة)</th>
+                        <th>معدل التقدم (متر/ساعة)</th>
                         <th>معدل حرق الجاز (لتر/م³)</th>
                         <th>نسبة المساهمة بالشهر</th>
                     </tr>
@@ -204,8 +213,11 @@
                             </span>
                         </td>
                         <td class="fw-bold fs-5 text-navy">{{ op.m3|floatformat:0 }} م³</td>
+                        <!-- عرض إجمالي التقدم المتري لكل كابتن من واقع قاعدة البيانات -->
+                        <td class="fw-bold fs-5 text-primary">{{ op.meters|floatformat:0 }} م</td>
                         <td class="text-success fw-bold fs-5">{{ op.rate }} م³/س</td>
-                        <!-- حقن حقل معدل استهلاك السولار للمشغل لتحديد كفاءة تشغيل اليد -->
+                        <!-- عرض معدل التقدم بالمتر لكل ساعة تشغيل فعلي للكابتن -->
+                        <td class="text-info fw-bold fs-5">{{ op.meters_rate }} م/س</td>
                         <td class="text-danger fw-bold fs-5">{{ op.fuel_per_m3 }} لتر/م³</td>
                         <td style="width: 180px; vertical-align: middle;">
                             <div class="progress" style="height: 12px; background-color: #e2e8f0; border-radius: 6px; overflow: hidden;">
@@ -219,12 +231,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
     <!-- 4. سجل الوقفات الفنية (يظهر في المعاينة والطباعة ويغطي الـ 15 نوعاً الفابريكا بالكامل) -->
     <div id="print-stops" class="page-break mt-5">
         <h3 class="section-title">
-            <span style="color: #0a192f !important;"><i class="fas fa-exclamation-triangle me-2"></i> تحليل الوقفات والأعطال والخلل الفني (سجل الـ 30 يوماً)</span>
+            <span style="color: #0a192f !important;"><i class="fas fa-exclamation-triangle me-2"></i> تحليل الوقفات والأعطال والخلل الفني (سجل المده المحددهً)</span>
             <button onclick="printDiv('print-stops')" class="btn btn-sm btn-outline-danger no-print">
                 <i class="fas fa-print me-1"></i> طباعة الوقفات فقط
             </button>
@@ -265,7 +276,7 @@
 <footer class="final-signature text-center">
     <div style="width: 120px; height: 4px; background: var(--gold); margin: 0 auto 15px; border-radius: 2px;"></div>
     <p class="mb-1 opacity-75" style="font-size:0.95rem; font-weight:500;">تم تطوير وتصميم وهندسة النظام باحترافية كاملة بواسطة</p>
-    <h1 class="fw-bold" style="color: var(--gold); letter-spacing: 3px; font-size: 2.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">كابتن / إبراهيم إسماعيل</h1>
+    <h1 class="fw-bold" style="color: var(--gold); letter-spacing: 3px; font-size: 2.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Operation Office </h1>
     <small class="opacity-50 fw-bold">2026 &copy; جميع الحقوق محفوظة برمجياً - لشركة قاصد خير للمقاولات</small>
 </footer>
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير بايب فايتر رسمي - {{ report.date|date:"d-m-Y" }}</title>
+    <title>Pipe Fighter Report- {{ report.date|date:"d-m-Y" }}</title>
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; }
         body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; margin: 0; padding: 0; }
@@ -49,7 +49,7 @@
     <!-- 1. الترويسة -->
     <div class="d-flex justify-content-between align-items-center mb-4" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2 class="header-title mb-0" style="margin:0;">شركة قاصد خير للمقاولات</h2>
+            <h2 class="header-title mb-0" style="margin:0;">شركة قاصد خير للتوريدات العموميه والمقاولات</h2>
             <div class="fw-bold text-primary mt-1" style="font-weight: bold; color: var(--navy); margin-top: 5px;"><i class="fas fa-tools me-2"></i>تقرير فني صيانة خطوط الطرد وعمليات الردم</div>
         </div>
         <img src="{% static 'images/logo.png' %}" width="90" alt="Logo">
@@ -149,7 +149,7 @@
 
     <!-- 4. جرد المهمات والأدوات والعدد الثابتة (المحدث بالـ 10 حقول كاملة) -->
     <div class="section-box">
-        <div class="section-header">3- بيان عُهدة المهمات والأدوات الفنية والعدد بالخط</div>
+        <div class="section-header">4- بيان عُهدة المهمات والأدوات الفنية والعدد بالخط</div>
         <table class="table-custom">
             <thead>
                 <tr>
@@ -176,7 +176,7 @@
                 </tr>
                 <tr>
                     <td>لقمة مقاس 24 مم</td><td>{{ report.socket_24 }}</td>
-                    <td>جهاز ايرجن هواء متكامل</td><td>{{ report.air_gun }}</td>
+                    <td> ايرجن  </td><td>{{ report.air_gun }}</td>
                 </tr>
             </tbody>
         </table>
@@ -190,22 +190,7 @@
         </div>
     </div>
 
-    <!-- 8. التوقيعات الهندسية المكتملة المقفلة صح -->
-    <div class="footer-sig">
-        <div>
-            <p style="margin:0;">فني صيانة الخط</p>
-            <div class="sig-box">التوقيع</div>
-        </div>
-        <div>
-            <p style="margin:0;">مشرف عمليات الردم</p>
-            <div class="sig-box">التوقيع</div>
-        </div>
-        <div>
-            <p style="margin:0;">اعتماد مدير المشروع</p>
-            <div class="sig-box">الاعتماد والختم</div>
-        </div>
-    </div>
-</div>
+
 
 </body>
 </html>

@@ -59,6 +59,8 @@ urlpatterns = [
 
     # الأكشن السريع (بدء/توقف)
     path('action/<int:dredger_id>/<str:action_type>/', views.quick_action, name='quick_action'),
+
+
 ] 
 
 # إعدادات الأخطاء والصور (مرة واحدة فقط لمنع التكرار)

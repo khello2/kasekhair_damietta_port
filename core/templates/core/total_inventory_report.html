@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>شركة قاصد خير - بيان حصر خطوط الكراكات والجرد العام</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --teal: #008080; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; background: #f4f6f9; padding: 20px; margin: 0; color: #333; }
+        .report-paper { background: white; max-width: 1100px; margin: 0 auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; border-top: 8px solid var(--navy); }
+        .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #ddd; padding-bottom: 15px; margin-bottom: 25px; }
+        .title-main { color: var(--navy); margin: 0; font-size: 1.8rem; font-weight: 900; }
+        .title-sub { color: var(--teal); font-weight: bold; font-size: 1rem; margin-top: 5px; }
+        .section-title { background: var(--navy); color: var(--gold); padding: 12px 20px; font-weight: bold; border-radius: 6px; margin: 30px 0 15px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: center; margin-bottom: 20px; font-size: 0.9rem; background: white; }
+        th { background: #f8f9fa; color: var(--navy); font-weight: bold; border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem; }
+        td { border: 1px solid #cbd5e1; padding: 10px; font-weight: 600; }
+        .row-total { background: #e2e8f0 !important; font-weight: 900 !important; color: var(--navy); }
+        .badge-cat { background: #f1f5f9; font-weight: 800; text-align: right; padding-right: 15px; color: var(--teal); font-size: 0.95rem; }
+        .btn-print { background: var(--teal); color: white; border: none; padding: 10px 25px; font-weight: bold; border-radius: 6px; cursor: pointer; float: left; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-print:hover { background: var(--navy); color: var(--gold); }
+        @media print { .no-print { display: none !important; } body { background: white; padding: 0; } .report-paper { box-shadow: none; padding: 0; border: none; max-width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div class="report-paper">
+    <button class="btn-print no-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة كشف الحصر الموحد</button>
+    
+    <div class="header-section">
+        <div>
+            <h1 class="title-main">شركة قاصد خير للمقاولات</h1>
+            <div class="title-sub"><i class="fas fa-layer-group"></i> إدارة العمليات - بيان حصر خطوط الكراكات والجرد العام للمشروع</div>
+        </div>
+        <div style="text-align: left; font-weight: bold; color: #666;">
+            <div>تاريخ التقرير: {{ date|date:"d-m-Y" }}</div>
+            <div style="font-size: 0.8rem; margin-top: 5px;">توقيت الإنعاش: {{ date|date:"H:i" }}</div>
+        </div>
+    </div>
+
+    <!-- الجدول الأول: حصر خطوط الكراكات بالخدمة -->
+    <div class="section-title"><i class="fas fa-ship"></i> 1- بيان حصر خطوط الكراكات بالخدمة حالياً (OPERATION DEPARTMENT)</div>
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">اسم الكراكة المستهدفة</th>
+                <th colspan="2">عدد مواسير الخط بالخدمة</th>
+                <th rowspan="2">عدد الربرات بالخدمة</th>
+                <th colspan="2">إجمالي طول خط الطرد (متر)</th>
+                <th rowspan="2">عدد الطوافات</th>
+                <th colspan="2">مخاطيف الخط</th>
+                <th colspan="2">بانتون (عدد)</th>
+            </tr>
+            <tr>
+                <th>على البر</th>
+                <th>في الماء</th>
+                <th>على البر</th>
+                <th>في الماء</th>
+                <th>أونلاين</th>
+                <th>سبير</th>
+                <th>حديد</th>
+                <th>PVC</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rep in active_pipe_reports %}
+            <tr>
+                <td style="color:red; font-weight: bold;">{{ rep.dredger_name }}</td>
+                <td>{{ rep.land_pipes }}</td>
+                <td>{{ rep.float_pipes }}</td>
+                <td>{{ rep.float_rubbers }}</td>
+                <td style="background:#fffbeb;">{{ rep.land_length }} م</td>
+                <td style="background:#fffbeb;">{{ rep.float_length }} م</td>
+                <td>{{ rep.float_pontoons }}</td>
+                <td>{{ rep.float_anchors }}</td>
+                <td>0</td>
+                <td>{{ rep.float_pantons }}</td>
+                <td>0</td>
+            </tr>
+            {% endfor %}
+            <tr class="row-total">
+                <td>الإجمالي العام للأسطول</td>
+                <td>{{ totals.land_pipes }}</td>
+                <td>{{ totals.float_pipes }}</td>
+                <td>{{ totals.float_rubbers }}</td>
+                <td>{{ totals.land_length }} م</td>
+                <td>{{ totals.float_length }} م</td>
+                <td>{{ totals.float_pontoons }}</td>
+                <td>{{ totals.float_anchors }}</td>
+                <td>0</td>
+                <td>{{ totals.float_pantons }}</td>
+                <td>0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- الجدول الثاني: ميزان الجرد العام للمخازن الثلاثة المدمجة -->
+    <div class="section-title"><i class="fas fa-boxes"></i> 2- بيان أرصدة وميزان الجرد العام للمهمات والمخازن (الموقع + البحرية + الاستوك)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>اسم الصنف والبيان الفني والمهمة</th>
+                <th>جرد البر / الموقع</th>
+                <th>العهدة البحرية (الكراكات)</th>
+                <th>المتاح بخط الطرد (البحر)</th>
+                <th style="background: #f1f5f9; color: var(--navy);">الميزان الإجمالي الكلي</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% regroup grand_inventory by category as cat_list %}
+            {% for cat in cat_list %}
+            <tr>
+                <td colspan="5" class="badge-cat">قِسم: {{ cat.grouper }}</td>
+            </tr>
+                {% for item in cat.list %}
+                <tr>
+                    <td style="text-align: right; padding-right: 20px; font-weight: bold;">{{ item.name }}</td>
+                    <td style="color: #475569;">{{ item.site|floatformat:0 }}</td>
+                    <td style="color: #475569;">{{ item.marine|floatformat:0 }}</td>
+                    <td style="color: #475569;">{{ item.pipe|floatformat:0 }}</td>
+                    <td style="background: #f8fafc; color: var(--navy); font-weight: 900; font-size: 1.05rem;">{{ item.total|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

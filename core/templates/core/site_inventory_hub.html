@@ -60,7 +60,7 @@
     <!-- 2. شريط بيانات الجرد الرسمي -->
     <div class="info-bar">
         <span>رقم المحضر: <span style="color: var(--navy);">SR-{{ report.id|default:"N/A" }}</span></span>
-        <span>تاريخ الجرد: <span style="color: var(--navy);">{{ report.date|date:"d/m/Y H:i"|default:date|date:"d/m/Y H:i" }}</span></span>
+        <span>تاريخ الجرد: <span style="color: var(--navy);">{% if report.date %}{{ report.date|date:"d/m/Y  (H:i)" }}{% else %}{% now "d/m/Y  (H:i)" %}{% endif %}</span></span>
         <span>المسؤول المسؤول: <span style="color: var(--navy);">{{ report.operator.name|default:user.username }}</span></span>
     </div>
 

@@ -220,20 +220,25 @@
                                 {% if d.can_add %}
                                 <div class="d-flex flex-column gap-2 me-auto" style="width: 175px !important; margin-left: auto; margin-right: 0;">
                                     {% if d.is_handed_over %}
-                                        <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                        <!-- 🟢 زر استلام عهدة (بدء تشغيل أوتوماتيك) -->
+                                        <a href="{% url 'quick_action' dredger_id=d.id action_type='start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
                                             <span style="font-size: 0.85rem; font-weight: 800;">استلام عهدة</span>
                                         </a>
                                     {% elif d.is_owner %}
                                         {% if d.status_code == 'active' %}
-                                            <a href="{% url 'quick_action' d.object.id 'stop' %}" class="btn-action btn-stop w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                            <!-- 🟡 زر تسجيل توقف المطور -->
+                                            <a href="{% url 'quick_action' dredger_id=d.id action_type='stop' %}" class="btn-action btn-stop w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
                                                 <span style="font-size: 0.85rem; font-weight: 800;">تسجيل توقف</span>
                                             </a>
                                         {% else %}
-                                            <a href="{% url 'quick_action' d.object.id 'start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                            <!-- 🟢 زر بدء تشغيل المطور -->
+                                            <a href="{% url 'quick_action' dredger_id=d.id action_type='start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
                                                 <span style="font-size: 0.85rem; font-weight: 800;">بدء تشغيل</span>
                                             </a>
                                         {% endif %}
-                                        <a href="{% url 'quick_action' d.object.id 'handover' %}" class="btn-action btn-handover w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
+                                        
+                                        <!-- 🔴 زر تسليم عهدة المطور والإغلاق اللحظي للمقص -->
+                                        <a href="{% url 'quick_action' dredger_id=d.id action_type='handover' %}" class="btn-action btn-handover w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
                                             <span style="font-size: 0.85rem; font-weight: 800; color: #1a2a3a;">تسليم عهدة</span>
                                         </a>
                                     {% endif %}
@@ -247,17 +252,14 @@
                                         </button>
                                         <button type="button" onclick="location.href='{% url 'marine_inventory_list' %}'"
                                                 class="btn btn-dark shadow-sm"
-                                                style="font-size: 0.75rem; border: 1px solid #d4af37; border-radius: 8px; padding: 10px 0; flex: 1 !important; color: #d4af37; font-weight: 800;">
-                                            سجل
+                                                style="font-size: 0.75rem; border: none; border-radius: 8px; padding: 10px 0; flex: 1 !important; font-weight: 800;">
+                                            أرشيف
                                         </button>
                                     </div>
                                 </div>
-                                {% else %}
-                                <div class="alert alert-dark text-center p-2 mb-0" style="background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.75rem; color: #fff; width: 100%; direction: rtl !important;">
-                                    الوردية مفعلة مع: <b>{{ d.op_name }}</b>
-                                </div>
                                 {% endif %}
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -266,6 +268,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- 5. لوحة التحكم والعمليات الميدانية العامة (تطابق قسري 100% مع أبعاد كروت الكراكات فوق) -->
     <div class="container mt-3 mb-5" style="max-width: 100%; padding-left: 15px !important; padding-right: 15px !important; box-sizing: border-box;">
@@ -296,6 +299,7 @@
                 <p class="text-muted small mb-3">تسجيل جرد ومطالعة أرصدة عهدة مخزن الموقع البري ومهمات الحركة والتشغيل</p>
                 <div class="d-flex gap-2 justify-content-center mt-2" style="width:100%;">
                     <a href="{% url 'land_inventory' %}" class="btn-go" style="background:#311987;">جرد البر</a>
+
                     <a href="{% url 'site_inventory_view' %}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill py-2" style="width:50%; font-size:0.75rem;"><i class="fas fa-print me-1"></i>كشف</a>
                 </div>
             </div>
@@ -377,8 +381,8 @@
     <footer class="final-signature no-print">
         <div class="sig-wrapper">
             <div class="sig-divider"></div>
-            <div class="sig-label">تم تطوير وتصميم وهندسة النظام باحترافية كاملة بواسطة</div>
-            <div class="sig-name">كابتن / إبراهيم إسماعيل</div>
+            <div class="sig-label">تم تطوير وتصميم وهندسة النظام  بواسطة</div>
+            <div class="sig-name">Operation Office   </div>
             <div class="sig-rights">2026 &copy; جميع الحقوق محفوظة لشركة قاصد خير للمقاولات</div>
         </div>
     </footer>

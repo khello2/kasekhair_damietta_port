@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 2. إعدادات الأمان
 SECRET_KEY = 'django-insecure-8ria@l-sko5%vs9)xpd028vys&0#+ud2uf&lo##kci1t5b6ai^'
 DEBUG = True
-ALLOWED_HOSTS = ['khello22.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['kasedkhairdamiettaport.cloud', 'www.kasedkhairdamiettaport.cloud', '2.24.8.6', '://pythonanywhere.com', '127.0.0.1', 'localhost', 'khello22.pythonanywhere.com', '127.0.0.1', 'localhost']
 
 # 3. التطبيقات المنصبة
 INSTALLED_APPS = [
@@ -93,3 +93,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+CSRF_TRUSTED_ORIGINS = ['https://kasedkhairdamiettaport.cloud', 'https://kasedkhairdamiettaport.cloud', 'http://2.24.8.6']
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True

@@ -53,6 +53,8 @@ class DailyProjectReport(models.Model):
     dredger = models.ForeignKey(Dredger, on_delete=models.CASCADE, verbose_name="الكراكة")
     date_started = models.DateField(verbose_name="تاريخ يوم العمل")
     is_closed = models.BooleanField(default=False, verbose_name="تم إغلاق اليوم")
+        # مفتاح تحكم ذكي لإظهار أو إخفاء الكمية المكعبة من الورقة الرسمية للتقرير
+    show_quantity_in_report = models.BooleanField(default=True, verbose_name="إظهار إجمالي المكعبات في التقرير المطبوع")
 
     class Meta:
         verbose_name = "تقرير يومي مجمع"
@@ -72,16 +74,23 @@ class WorkShift(models.Model):
         ('welding', 'أعمال لحام'),
         ('maintenance', 'صيانة دورية / عمرة'),
         ('anchors', 'نقل مخاطيف'),
-        ('maneuver', 'مناورة / تغيير موقع'),
+        ('maneuver', 'تشفيت / تغيير موقع'),
+        ('pipeline_washed', 'غسيل خط/ضخ مياه'),
         ('pipeline', 'فك / تركيب / إصلاح خط الطرد'),
         ('weather', 'توقف بسبب سوء الأحوال الجوية'),
         ('waiting_barge', 'انتظار صندل / تموين'),
         ('safety', 'توقف لأسباب تتعلق بالسلامة'),
         ('inspection', 'تفتيش / زيارة رسمية'),
         ('handover', 'استلام وتسليم وردية'),
+        ('shift_end', 'نهاية وردية ( 12 ساعة)'),
         ('obstruction', 'عوائق بالتربة'),
+        ('stone_box', 'فتح صندوق الحجارة'),
+        ('cutter_check', 'التشييك على الكتر'),
+        ('pipe_change', 'تغيير ماسورة بالخط'),
+        ('rubber_change', 'تغيير رابر بالخط'),
         ('other', 'توقف لأسباب أخرى'),
     ]
+
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='other', verbose_name="الحالة")
     # ... باقي الحقول كما هي ...
@@ -122,7 +131,6 @@ class WorkShift(models.Model):
     progress_meters = models.FloatField(default=0, verbose_name="أمتار التقدم (من الخريطة)")
     depth = models.FloatField(default=0, verbose_name="العمق")
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="الحالة")
     # داخل كلاس WorkShift في models.py
     # ... الحقول السابقة ...
     floating_line = models.FloatField(default=0, verbose_name="طول الخط العائم (م)")
@@ -168,44 +176,28 @@ class WorkShift(models.Model):
     swing_width = models.FloatField(default=0.0, verbose_name="عرض السوينج (م)")
 
     def save(self, *args, **kwargs):
-        # معادلة الحساب: (الفرق بين العمقين) × التقدم × عرض السوينج
-        depth_diff = abs(self.depth_after - self.depth_before)
-        self.quantity_m3 = round(depth_diff * (self.progress_meters or 0) * (self.swing_width or 0), 2)
-        super().save(*args, **kwargs)
-    # وظيفة الحفظ التلقائي للنتائج
-    def save(self, *args, **kwargs):
-        # 1. حساب استهلاك السولار: (البداية + المستلم) - النهاية
-        self.fuel_usage = (self.fuel_start + self.fuel_received) - self.fuel_end
-
-        # 2. حساب ساعات تشغيل المحركات
-        # ملاحظة: سيظل حقل main_engine_hours و aux_engine_hours موجودين لتخزين النتيجة
-        self.main_engine_hours = self.main_engine_end - self.main_engine_start
-        self.aux_engine_hours = self.aux_engine_end - self.aux_engine_start
-
-        super().save(*args, **kwargs)
-    # داخل كلاس WorkShift في models.py
-    def save(self, *args, **kwargs):
-        # حساب الساعات: فقط إذا كانت هناك قراءة نهاية
-        if self.main_engine_end > 0:
-            self.main_engine_hours = self.main_engine_end - self.main_engine_start
+        # 1. حساب ساعات تشغيل المحركات (تراكمي حقيقي) بناءً على قراءات العدادات الفعلي
+        if self.main_engine_end and self.main_engine_start and float(self.main_engine_end) >= float(self.main_engine_start):
+            self.main_engine_hours = float(self.main_engine_end) - float(self.main_engine_start)
         else:
-            self.main_engine_hours = 0
+            self.main_engine_hours = 0.0
 
-        if self.aux_engine_end > 0:
-            self.aux_engine_hours = self.aux_engine_end - self.aux_engine_start
+        if self.aux_engine_end and self.aux_engine_start and float(self.aux_engine_end) >= float(self.aux_engine_start):
+            self.aux_engine_hours = float(self.aux_engine_end) - float(self.aux_engine_start)
         else:
-            self.aux_engine_hours = 0
+            self.aux_engine_hours = 0.0
 
-        # حساب السولار: لا يحسب استهلاكاً طالما لم يتم إدخال "سولار نهاية الوردية"
-        if self.fuel_end > 0:
-            # المعادلة: (البداية + التموين) - النهاية
-            self.fuel_usage = (self.fuel_start + self.fuel_received) - self.fuel_end
+        # 2. حساب استهلاك السولار الصافي الفعلي للوردية
+        if self.fuel_start and self.fuel_end:
+            self.fuel_usage = (float(self.fuel_start) + float(self.fuel_received or 0)) - float(self.fuel_end)
         else:
-            # إذا لم يسجل النهاية بعد، الاستهلاك = 0 (وردية جارية)
-            self.fuel_usage = 0
+            self.fuel_usage = 0.0
+
+        # 3. حساب الكمية المكعبة (الإنتاجية التقريبية) من حقول العمق الفعلي للموديل الجديد
+        depth_diff = abs(float(self.depth_after or 0.0) - float(self.depth_before or 0.0))
+        self.quantity_m3 = round(depth_diff * (float(self.progress_meters or 0.0)) * (float(self.swing_width or 0.0)), 2)
 
         super().save(*args, **kwargs)
-
 
 class PipeFighterOperations(models.Model):
     SHIFT_CHOICES = [('morning', 'صباحي'), ('night', 'مسائي')]
@@ -277,16 +269,6 @@ class PipeFighterOperations(models.Model):
         verbose_name_plural = "تقارير بايب فايتر"
 
 # 6. الموديل الجديد لإضافة أصناف بحرية متغيرة (عشان يقدر يضيف أصناف براحته)
-class PipeFighterExtraItem(models.Model):
-    report = models.ForeignKey(PipeFighterOperations, on_delete=models.CASCADE, related_name='extra_items')
-    item_name = models.CharField(max_length=100, verbose_name="اسم الصنف الإضافي")
-    quantity = models.IntegerField(default=0, verbose_name="الكمية")
-
-    class Meta:
-        verbose_name = "صنف إضافي بالخط"
-        verbose_name_plural = "أصناف إضافية بالخط"
-
-# 6. الشريط الإخباري
 class NewsTicker(models.Model):
     message = models.CharField(max_length=500, verbose_name="التعليمات / الخبر")
     is_active = models.BooleanField(default=True, verbose_name="تفعيل")
@@ -298,18 +280,6 @@ class NewsTicker(models.Model):
 
 # 7. المخازن
 # أضف هذا في core/models.py
-
-class InventoryCategory(models.TextChoices):
-    BELTS = 'قايش', 'قايش'
-    LOCKS = 'أقفال', 'أقفال'
-    ROPES = 'حبال', 'حبال'
-    BOLTS = 'مسامير', 'مسامير'
-    WIRES = 'وايرات', 'وايرات'
-    TOOLS = 'مفاتيح ولقم', 'مفاتيح ولقم'
-    RUBBERS = 'ربرات', 'ربرات'
-    PONTOONS = 'طوافات', 'طوافات'
-    OTHER = 'أخرى', 'أخرى'
-    # (ملاحظة: شلنا المواسير بناءً على طلبك من جرد البحرية)
 
 class AdminVault(models.Model):
     staff_name = models.CharField(max_length=100, verbose_name="اسم الموظف")
@@ -349,15 +319,6 @@ class PipeFighterExtraItem(models.Model):
         verbose_name_plural = "أصناف إضافية للوردية"
 
 # موديل المعدات المساعدة (لوادر، سيارات، حفارات حواجز)
-class SupportEquipment(models.Model):
-    name = models.CharField(max_length=100, verbose_name="اسم المعدة")
-    category = models.CharField(max_length=50, choices=[('land', 'معدات برية'), ('sea', 'معدات بحرية')], verbose_name="التصنيف")
-
-    def __str__(self):
-        return self.name
-
-# سجل حركة السولار العام (للموقع بالكامل)
-# 1. موديل المعدات المعاونة (لوادر، حفارات، لانشات، مولدات)
 class SupportEquipment(models.Model):
     CATEGORY_CHOICES = [
         ('marine', 'معدات بحرية (تتبع الكراكة/المالتي كات)'),
@@ -460,3 +421,6 @@ class InventoryTransaction(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(max_length=255, blank=True)
 
+    class Meta:
+        verbose_name = "معاملة جرد"
+        verbose_name_plural = "سجل معاملات الجرد"
