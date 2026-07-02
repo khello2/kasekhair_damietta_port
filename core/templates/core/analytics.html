@@ -196,7 +196,7 @@
                         <th>إجمالي التقدم</th>
                         <th>معدل الإنتاج (م³/ساعة)</th>
                         <th>معدل التقدم (متر/ساعة)</th>
-                        <th>معدل حرق الجاز (لتر/م³)</th>
+                        
                         <th>نسبة المساهمة بالشهر</th>
                     </tr>
                 </thead>
@@ -218,7 +218,7 @@
                         <td class="text-success fw-bold fs-5">{{ op.rate }} م³/س</td>
                         <!-- عرض معدل التقدم بالمتر لكل ساعة تشغيل فعلي للكابتن -->
                         <td class="text-info fw-bold fs-5">{{ op.meters_rate }} م/س</td>
-                        <td class="text-danger fw-bold fs-5">{{ op.fuel_per_m3 }} لتر/م³</td>
+                        
                         <td style="width: 180px; vertical-align: middle;">
                             <div class="progress" style="height: 12px; background-color: #e2e8f0; border-radius: 6px; overflow: hidden;">
                                 <div class="progress-bar {% if forloop.counter == 1 %}bg-warning{% else %}bg-success{% endif %}" 

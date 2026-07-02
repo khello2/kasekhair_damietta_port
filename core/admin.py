@@ -5,9 +5,10 @@ from datetime import time, timedelta
 from .models import (
     PipeFighterExtraItem, WorkShift, Staff, Dredger, DailyProjectReport, 
     WeeklyRotation, PipeFighterOperations, NewsTicker, AdminVault, InventoryItem,
-    SupportEquipment, FuelMovement, MarineInventoryDetail, MarineInventoryReport
+    SupportEquipment, MarineInventoryDetail, MarineInventoryReport
 )
-
+from .models import ProcurementOrder
+admin.site.register(ProcurementOrder)
 admin.site.site_header = "شركة قاصد خير للمقاولات"
 admin.site.site_title = "بوابة إدارة المشاريع"
 admin.site.index_title = "لوحة التحكم والعمليات"
@@ -52,10 +53,16 @@ class WorkShiftAdmin(admin.ModelAdmin):
         engines = ['main_engine_start', 'main_engine_end', 'aux_engine_start', 'aux_engine_end']
         location = ['start_east', 'start_north', 'end_east', 'end_north']
         lines = ['floating_line', 'land_line']
-        optional = ['fuel_start', 'fuel_received', 'fuel_end', 'progress_meters', 
-                    'depth_before', 'depth_after', 'swing_width', 'quantity_m3', 
-                    'stop_reason', 'stop_image']
+        
+        # 🔥 حقن الـ 3 حقول الجداد هنا بالملّي لكي تظهر فوراً في شاشة الأدمن بانل
+        optional = [
+            'fuel_start', 'fuel_received', 'fuel_end', 
+            'fuel_to_dredger', 'fuel_to_excavator', 'fuel_to_multicat', # الثلاثي المطور للمنقول
+            'progress_meters', 'depth_before', 'depth_after', 'swing_width', 'quantity_m3', 
+            'stop_reason', 'stop_image'
+        ]
         return base + engines + location + lines + optional
+
 
     # 🌐 محرك الترجمة الفورية لجدول الأدمن: يسحب الاسم العربي الشيك للحالة عافية ويظهره في عمود العرض
     def get_status_arabic(self, obj):
@@ -86,9 +93,15 @@ class WorkShiftAdmin(admin.ModelAdmin):
         f_start = float(obj.fuel_start or 0)
         f_rec = float(obj.fuel_received or 0)
         f_end = float(obj.fuel_end or 0)
-        obj.fuel_usage = max(0.0, (f_start + f_rec) - f_end)
         
-        # 🔥 السطر الإلزامي الفابريكا لحفظ خيارات الإدخال من الأدمن بانل
+        # خصم المنقول الثلاثي جوه الأدمن
+        f_trans = (
+            float(obj.fuel_to_dredger or 0.0) + 
+            float(obj.fuel_to_excavator or 0.0) + 
+            float(obj.fuel_to_multicat or 0.0)
+        )
+        obj.fuel_usage = max(0.0, (f_start + f_rec) - f_end - f_trans)
+        
         super().save_model(request, obj, form, change)
 
 
@@ -162,16 +175,20 @@ class WorkShiftAdmin(admin.ModelAdmin):
                             if (pMeters && pMeters.value.trim() === '') pMeters.value = '0';
                         }});
 
-                        var f_fuel = document.querySelectorAll('.field-fuel_start, .field-fuel_received, .field-fuel_end');
+                        // ⛽ تجميع حقول الديزل والسولار مع حقن كلاسات الـ 3 حقول الجداد للمنقول هندسياً
+                        var f_fuel = document.querySelectorAll('.field-fuel_start, .field-fuel_received, .field-fuel_end, .field-fuel_to_dredger, .field-fuel_to_excavator, .field-fuel_to_multicat');
                         var f_prog = document.querySelectorAll('.field-progress_meters, .field-depth_before, .field-depth_after, .field-swing_width, .field-quantity_m3');
                         var f_stop = document.querySelectorAll('.field-stop_reason, .field-stop_image');
+                        
                         [...f_fuel, ...f_prog, ...f_stop].forEach(el => {{ if(el) el.classList.add('hidden-row'); }});
+                        
                         var div = document.createElement('div'); div.id = 'kased_btns'; div.className = 'kased-btn-group';
                         var createBtn = (txt, rows) => {{
                             var b = document.createElement('button'); b.type = 'button'; b.className = 'kased-btn'; b.innerText = txt;
                             b.onclick = function() {{ rows.forEach(r => {{ if(r) r.classList.toggle('hidden-row'); }}); }}; return b;
                         }};
-                        div.appendChild(createBtn('⛽ تسجيل السولار', f_fuel));
+                        
+                        div.appendChild(createBtn('⛽ تسجيل السولار والمنقول', f_fuel));
                         div.appendChild(createBtn('📏 تسجيل التقدم والأعماق', f_prog));
                         div.appendChild(createBtn('⚠️ وصف التوقف', f_stop));
                         target.prepend(div);
@@ -194,6 +211,7 @@ class WorkShiftAdmin(admin.ModelAdmin):
             }})();
             </script>
         """)
+
         if 'operator' in form.base_fields: 
             form.base_fields['operator'].help_text = js_code
         return form
@@ -277,7 +295,7 @@ safe_register(NewsTicker)
 safe_register(AdminVault)
 safe_register(MarineInventoryDetail)
 safe_register(SupportEquipment)
-safe_register(FuelMovement)
+safe_register(ProcurementOrder)
 
 # 🎨 محرك الحقن المركزي لتصغير وتنسيق المرشح (Filter) في جميع جداول السيستم بره وجوه
 from django.contrib.admin import ModelAdmin
@@ -314,3 +332,12 @@ def patch_admin_filters():
     ModelAdmin.get_form = new_get_form
 
 patch_admin_filters()
+ 
+# 🔥 تسجيل جدول الطوارئ في الأدمن بانل ليظهر قدامك في لوحة التحكم فوراً
+from .models import EmergencyAlert
+
+@admin.register(EmergencyAlert)
+class EmergencyAlertAdmin(admin.ModelAdmin):
+    list_display = ['dredger', 'alert_type', 'operator', 'created_at', 'is_resolved']
+    list_filter = ['is_resolved', 'alert_type', 'dredger']
+    search_fields = ['dredger__name', 'operator__name']

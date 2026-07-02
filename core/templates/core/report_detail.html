@@ -77,12 +77,24 @@
 
     <div class="container no-print mt-4 d-flex justify-content-between">
         <a href="{% url 'reports_list' %}" class="btn btn-dark shadow-sm"><i class="fas fa-arrow-right me-1"></i> الأرشيف</a>
+        <a href="/" class="btn btn-outline-light btn-sm mt-2"><i class="fas fa-arrow-left me-1"></i> العودة للرئيسية</a>
         <div>
             <button onclick="window.print()" class="btn btn-primary shadow-sm px-4 me-2"><i class="fas fa-print me-1"></i> طباعة المختصر</button>
             <!-- الزر الجديد المخصص لتفاصيل الجلسات -->
             <button onclick="printDetailedLogOnly()" class="btn btn-success shadow-sm px-4"><i class="fas fa-user-clock me-1"></i> طباعة تفاصيل المشغلين</button>
         </div>
     </div>
+{% if request.user.is_superuser and not report.is_closed %}
+    <div class="text-center my-3">
+        <a href="{% url 'close_report_permanently' report.id %}" class="btn btn-warning fw-bold border-dark px-5 py-3 shadow-lg" onclick="return confirm('🚨 انتباه كابتن! هل أنت متأكد من اعتماد التقرير وتجميد الأرقام للأبد؟ لن يتمكن أحد من تعديل أو تجميع الورديات لهذا اليوم مرة أخرى بعد الإغلاق.');">
+            🔒 إغلاق واعتماد التقرير اليومي وتجميد الأرقام للأبد
+        </a>
+    </div>
+{% elif report.is_closed %}
+    <div class="alert alert-dark text-center fw-bold shadow-sm border-secondary" role="alert">
+        🔒 هذا التقرير اليومي معتمد ومغلق نهائياً. 
+    </div>
+{% endif %}
 
 
     <div class="report-paper">
@@ -141,13 +153,26 @@
                     <div class="col-6 text-danger"><small class="text-danger d-block small-label fw-bold">توقف</small><b style="font-size: 1.35rem;">{{ total_stop_hours }}</b></div>
                 </div>
             </div>
+            <!-- ⛽ كارت محاسبة السولار الذكي المطور (يتكيف تلقائياً مع المنصرف للمعدات) -->
             <div class="stat-box" style="border-top-color: #dc3545;">
                 <div class="stat-label mb-2">محاسبة السولار (24 ساعة)</div>
-                <div class="row g-0 align-items-center">
-                    <div class="col-3 border-end"><small class="text-muted d-block small-label">بداية</small><b>{{ fuel_start_val }}</b></div>
-                    <div class="col-3 border-end"><small class="text-success d-block small-label">مستلم</small><b>+{{ total_received }}</b></div>
-                    <div class="col-3 border-end"><small class="text-muted d-block small-label">نهاية</small><b>{{ fuel_end_val }}</b></div>
-                    <div class="col-3 text-danger"><small class="d-block small-label">الاستهلاك</small><b>{{ total_fuel_usage }}</b></div>
+                <div class="row g-0 align-items-center text-center">
+                    <!-- 1. الفتح -->
+                    <div class="col border-end"><small class="text-muted d-block small-label">بداية</small><b>{{ fuel_start_val }}</b></div>
+                    
+                    <!-- 2. المستلم/تموين -->
+                    <div class="col border-end"><small class="text-success d-block small-label">مستلم</small><b>+{{ total_received }}</b></div>
+                    
+                    <!-- 3. المنصرف للمعدات (يظهر فقط وحصرياً لو القيمة أكبر من صفر) -->
+                    {% if total_transferred and total_transferred > 0 %}
+                        <div class="col border-end bg-warning bg-opacity-10"><small class="text-warning d-block small-label fw-bold">منصرف لمعدات</small><b class="text-warning">-{{ total_transferred }}</b></div>
+                    {% endif %}
+                    
+                    <!-- 4. القفل -->
+                    <div class="col border-end"><small class="text-muted d-block small-label">نهاية</small><b>{{ fuel_end_val }}</b></div>
+                    
+                    <!-- 5. الحرق الصافي الفعلي للماكينات -->
+                    <div class="col"><small class="text-danger d-block small-label fw-bold">الاستهلاك</small><b class="text-danger">{{ total_fuel_usage }}</b></div>
                 </div>
             </div>
 
@@ -185,14 +210,18 @@
                 </div>
             </div>
         </div>
-        <!-- 4. تسلسل العمليات -->
+        <!-- 4. تسلسل العمليات (مطور ومدمج هندسياً بالحالة والأسماء) -->
         <div class="bg-light p-3 rounded mb-4 border">
             <h6 class="fw-bold mb-3 text-navy border-bottom pb-1"><i class="fas fa-history me-1"></i> تسلسل العمليات والأحداث:</h6>
             <div class="timeline-container">
                 {% for event in timeline %}
-                <div class="timeline-item">
+                <div class="timeline-item" style="margin-bottom: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <span class="time-badge">{{ event.time_range }}</span>
                     <span class="ms-2 small {% if event.status != 'active' %}text-danger fw-bold{% endif %}">{{ event.description }}</span>
+                    
+                    <!-- 🟢 اللحام السحري: طبع الأسماء الملحومة أوتوماتيكياً للحفاظ على حق الكباتن في تسلسل خط الإنتاج -->
+                    <span class="badge bg-light text-navy border ms-1 small fw-bold" style="font-size: 0.75rem;"><i class="fas fa-user-gear me-1"></i> المشغل: {{ event.merged_op_names }}</span>
+                    
                     <span class="badge bg-white text-muted border ms-1 small">المدة: {{ event.duration_str }}</span>
                 </div>
                 {% endfor %}

@@ -45,34 +45,65 @@
                 <input type="time" name="action_time" value="{{ current_time }}" class="form-control" required>
             </div>
         </div>
+        <!-- 🛡️ ميزان الشاشات المطور: فصل مسار التشغيل، والتوقف، والتوريث أثناء العهدة بالملّي لمنع التداخل -->
+        <label class="form-label fw-bold text-navy">حالة أو سبب الإجراء الحالي للكراكة:</label>
+        <select name="status_choice" class="form-select fw-bold" required>
+            
+            <!-- 🟢 المسار 1: إذا ضغط المشغل زر "بدء تشغيل" -> الإجبار التام على التشغيل الفعلي كخيار أول وديفولت -->
+            {% if action_type == 'start' %}
+                <option value="active" selected>تشغيل فعلي (إنتاج)</option>
+                
+            <!-- ⚠️ المسار 2: إذا ضغط المشغل زر "تسجيل توقف لعطل" -> الإجبار التام على أول نوع توقف كديفولت ويختفي التشغيل تماماً -->
+            {% elif action_type == 'stop' %}
+                <option value="breakdown_mech" selected>🛠️ عطل ميكانيكي (توقف)</option>
+                <option value="breakdown_elec">⚡ عطل كهربائي (توقف)</option>
+                <option value="breakdown_hydrulic">⚙️ عطل هيدروليك (توقف)</option>
+                <option value="welding">🔥 أعمال لحام</option>
+                <option value="maintenance">🔧 صيانة دورية / عمرة</option>
+                <option value="anchors">⚓ نقل مخاطيف</option>
+                <option value="maneuver">🔄 تشفيت / تغيير موقع</option>
+                <option value="pipeline_washed">💧 غسيل خط/ضخ مياه</option>
+                <option value="pipeline">🚀 فك / تركيب / إصلاح خط الطرد</option>
+                <option value="weather">☁️ توقف بسبب سوء الأحوال الجوية</option>
+                <option value="waiting_barge">🚢 انتظار صندل / تموين</option>
+                <option value="safety">🦺 توقف لأسباب تتعلق بالسلامة</option>
+                <option value="inspection">📋 تفتيش / زيارة رسمية</option>
+                <option value="shift_end">⏰ نهاية وردية ( 12 ساعة)</option>
+                <option value="obstruction">🪨 عوائق بالتربة</option>
+                <option value="stone_box">📦 فتح صندوق الحجارة</option>
+                <option value="cutter_check">🛸 التشييك على الكتر</option>
+                <option value="pipe_change">🛠️ تغيير ماسورة بالخط</option>
+                <option value="rubber_change">🔧 تغيير رابر بالخط</option>
+                <option value="other">❓ توقف لأسباب أخرى</option>
+                
+            <!-- 📦 المسار 3: إذا ضغط المشغل زر "تسليم عهدة" -> التوريث اللحظي الذكي (يدعم العربي والإنجليزي معاً) -->
+            {% elif action_type == 'handover' %}
+                <option value="active" {% if inherited.status_code == 'active' or inherited.status_code == 'تشغيل فعلي (إنتاج)' %}selected{% endif %}>تشغيل فعلي (إنتاج)</option>
+                <option value="breakdown_mech" {% if inherited.status_code == 'breakdown_mech' or inherited.status_code == 'عطل ميكانيكي' or inherited.status_code == 'عطل ميكانيكي (توقف)' %}selected{% endif %}>🛠️ عطل ميكانيكي (توقف)</option>
+                <option value="breakdown_elec" {% if inherited.status_code == 'breakdown_elec' or inherited.status_code == 'عطل كهربائي' or inherited.status_code == 'عطل كهربائي (توقف)' %}selected{% endif %}>⚡ عطل كهربائي (توقف)</option>
+                <option value="breakdown_hydrulic" {% if inherited.status_code == 'breakdown_hydrulic' or inherited.status_code == 'عطل هيدروليك' or inherited.status_code == 'عطل هيدروليك (توقف)' %}selected{% endif %}>⚙️ عطل هيدروليك (توقف)</option>
+                <option value="welding" {% if inherited.status_code == 'welding' or inherited.status_code == 'أعمال لحام' %}selected{% endif %}>🔥 أعمال لحام</option>
+                <option value="maintenance" {% if inherited.status_code == 'maintenance' or inherited.status_code == 'صيانة دورية / عمرة' %}selected{% endif %}>🔧 صيانة دورية / عمرة</option>
+                <option value="anchors" {% if inherited.status_code == 'anchors' or inherited.status_code == 'نقل مخاطيف' %}selected{% endif %}>⚓ نقل مخاطيف</option>
+                <option value="maneuver" {% if inherited.status_code == 'maneuver' or inherited.status_code == 'تشفيت / تغيير موقع' %}selected{% endif %}>🔄 تشفيت / تغيير موقع</option>
+                <option value="pipeline_washed" {% if inherited.status_code == 'pipeline_washed' or inherited.status_code == 'غسيل خط/ضخ مياه' %}selected{% endif %}>💧 غسيل خط/ضخ مياه</option>
+                <option value="pipeline" {% if inherited.status_code == 'pipeline' or inherited.status_code == 'فك / تركيب / إصلاح خط الطرد' %}selected{% endif %}>🚀 فك / تركيب / إصلاح خط الطرد</option>
+                <option value="weather" {% if inherited.status_code == 'weather' or inherited.status_code == 'توقف بسبب سوء الأحوال الجوية' %}selected{% endif %}>☁️ توقف بسبب سوء الأحوال الجوية</option>
+                <option value="waiting_barge" {% if inherited.status_code == 'waiting_barge' or inherited.status_code == 'انتظار صندل / تموين' %}selected{% endif %}>🚢 انتظار صندل / تموين</option>
+                <option value="safety" {% if inherited.status_code == 'safety' or inherited.status_code == 'توقف لأسباب تتعلق بالسلامة' %}selected{% endif %}>🦺 توقف لأسباب تتعلق بالسلامة</option>
+                <option value="inspection" {% if inherited.status_code == 'inspection' or inherited.status_code == 'تفتيش / زيارة رسمية' %}selected{% endif %}>📋 تفتيش / زيارة رسمية</option>
+                <option value="shift_end" {% if inherited.status_code == 'shift_end' %}selected{% endif %}>⏰ نهاية وردية ( 12 ساعة)</option>
+                <option value="obstruction" {% if inherited.status_code == 'obstruction' or inherited.status_code == 'عوائق بالتربة' %}selected{% endif %}>🪨 عوائق بالتربة</option>
+                <option value="stone_box" {% if inherited.status_code == 'stone_box' or inherited.status_code == 'فتح صندوق الحجارة' %}selected{% endif %}>📦 فتح صندوق الحجارة</option>
+                <option value="cutter_check" {% if inherited.status_code == 'cutter_check' or inherited.status_code == 'التشييك على الكتر' %}selected{% endif %}>🛸 التشييك على الكتر</option>
+                <option value="pipe_change" {% if inherited.status_code == 'pipe_change' or inherited.status_code == 'تغيير ماسورة بالخط' %}selected{% endif %}>🛠️ تغيير ماسورة بالخط</option>
+                <option value="rubber_change" {% if inherited.status_code == 'rubber_change' or inherited.status_code == 'تغيير رابر بالخط' %}selected{% endif %}>🔧 تغيير رابر بالخط</option>
+                <option value="handover" {% if inherited.status_code == 'handover' or inherited.status_code == 'إجراء تسليم إداري نظيف' %}selected{% endif %}>📦 إجراء تسليم إداري نظيف</option>
+                <option value="other" {% if inherited.status_code == 'other' or inherited.status_code == 'توقف لأسباب أخرى' %}selected{% endif %}>❓ توقف لأسباب أخرى</option>
+            {% endif %}
 
-        <!-- 🛡️ محرك التلقيم القياسي الصارم: يرسل الرموز القصيرة المقبولة عسكرياً جوه قاعدة بياناتك لمنع تصفير الشاشات -->
-        <label class="form-label">حالة أو سبب الإجراء الحالي للكراكة:</label>
-        <select name="status_choice" class="form-select" required>
-            <option value="active" {% if action_type == 'start' %}selected{% endif %}>تشغيل فعلي (إنتاج)</option>
-            <option value="breakdown_mech" {% if action_type == 'stop' %}selected{% endif %}>عطل ميكانيكي</option>
-            <option value="breakdown_elec">عطل كهربائي</option>
-            <option value="breakdown_hydrulic">عطل هيدروليك</option>
-            <option value="welding">أعمال لحام</option>
-            <option value="maintenance">صيانة دورية / عمرة</option>
-            <option value="anchors">نقل مخاطيف</option>
-            <option value="maneuver">تشفيت / تغيير موقع</option>
-            <option value="pipeline_washed">غسيل خط/ضخ مياه</option>
-            <option value="pipeline">فك / تركيب / إصلاح خط الطرد</option>
-            <option value="weather">توقف بسبب سوء الأحوال الجوية</option>
-            <option value="waiting_barge">انتظار صندل / تموين</option>
-            <option value="safety">توقف لأسباب تتعلق بالسلامة</option>
-            <option value="inspection">تفتيش / زيارة رسمية</option>
-            <option value="handover" {% if action_type == 'handover' %}selected{% endif %}>استلام وتسليم وردية</option>
-            <option value="shift_end">نهاية وردية ( 12 ساعة)</option>
-            <option value="obstruction">عوائق بالتربة</option>
-            <option value="stone_box">فتح صندوق الحجارة</option>
-            <option value="cutter_check">التشييك على الكتر</option>
-            <option value="pipe_change">تغيير ماسورة بالخط</option>
-            <option value="rubber_change">تغيير رابر بالخط</option>
-            <option value="other">توقف لأسباب أخرى</option>
+            
         </select>
-
 
         <!-- لوحة الزراير الذكية للتفتيح المرن -->
         <div class="kased-btn-group">
@@ -82,10 +113,27 @@
             <button type="button" class="kased-btn" onclick="toggleSec('sec_geo', this)">📍 الإحداثيات</button>
         </div>
 
+        <!-- ⛽ قسم الديزل المطور: يشمل مخزون القفل والـ 3 خيارات بتوع السولار المنقول بره الكراكة -->
         <div id="sec_fuel" class="hidden-section">
-            <label class="form-label">رصيد السولار الحالي الحقيقي (لتر):</label>
-            <input type="number" step="0.01" name="fuel_val" value="{{ inherited.fuel }}" class="form-control">
+            <div class="mb-3">
+                <label class="form-label text-primary">📊 رصيد السولار الحالي الحقيقي بالتانك (لتر):</label>
+                <input type="number" step="0.01" name="fuel_val" value="{{ inherited.fuel }}" class="form-control">
+            </div>
+            
+            <div class="p-3 border border-warning rounded-3 bg-light text-right mb-2">
+                <small class="fw-bold text-danger d-block mb-2 text-center"><i class="fas fa-exchange-alt"></i> ⚠️ جرد السولار المنقول / المحوّل (إذا حُدث بالوردية):</small>
+                
+                <label class="form-label text-dark">🚢 سولار محوّل لكراكة أخرى (لتر):</label>
+                <input type="number" step="0.01" name="fuel_to_dredger" value="0.0" class="form-control text-success">
+                
+                <label class="form-label text-dark">🚜 سولار محوّل لحفار خدمة (لتر):</label>
+                <input type="number" step="0.01" name="fuel_to_excavator" value="0.0" class="form-control text-success">
+                
+                <label class="form-label text-dark">🚢 سولار محوّل لمعدة بحرية / مالتي كات (لتر):</label>
+                <input type="number" step="0.01" name="fuel_to_multicat" value="0.0" class="form-control text-success">
+            </div>
         </div>
+
 
         <div id="sec_engines" class="hidden-section">
             <label class="form-label">قراءة قاطع الماكينة الرئيسية الحالي:</label>
@@ -144,17 +192,31 @@
         <label class="form-label">بيان الأعمال والملاحظات يدويًا:</label>
         <textarea name="notes" rows="2" class="form-control" placeholder="اكتب الملاحظات هنا..." style="text-align: right; height: 60px;"></textarea>
 
+        <!-- 🎯 محرك التوجيه الصافي والفصل التام بين التسليم والاستلام -->
         {% if action_type == 'start' %}
             <button type="submit" class="btn-submit btn-start"><i class="fas fa-check-double"></i> تأكيد وحفظ الوردية لايف</button>
+            
         {% elif action_type == 'handover' %}
-            <button type="submit" class="btn-submit btn-handover"><i class="fas fa-flag-checkered"></i> تأكيد تسليم العهدة وإغلاق الوردية</button>
+            
+            <!-- 🛡️ الفحص الجمركي الصارم لـ لقطة الاستلام الفعلي: لو الوردية الأخيرة معلقة بانتظار الاستلام -->
+            {% if inherited.notes == "عهدة معلقة بانتظار الاستلام" or inherited.status_code == "handover" %}
+                <!-- حقن أكشن الاستلام المخفي لإجبار السيرفر على التطهير والفتح النظيف -->
+                <input type="hidden" name="is_delivery_action" value="true">
+                <button type="submit" class="btn-submit btn-start" style="background-color: #28a745 !important; border-color: #28a745 !important;"><i class="fas fa-flag-checkered"></i> ✅ تأكيد استلام العهدة وفتح الوردية الجارية</button>
+            {% else %}
+                <!-- 🤝 لقطة التسليم العادية: الكابتن القديم بيقفل وبيمشي -->
+                <button type="submit" class="btn-submit btn-handover"><i class="fas fa-flag-checkered"></i> تأكيد تسليم العهدة وإغلاق الوردية</button>
+            {% endif %}
+            
         {% else %}
             <button type="submit" class="btn-submit btn-stop"><i class="fas fa-stop"></i> تسجيل الحركة وحفظ الأرصدة</button>
         {% endif %}
         
         <a href="{% url 'home' %}" style="display:block; text-align:center; color:#64748b; font-weight:bold; text-decoration:none; margin-top:12px; font-size:0.85rem;"><i class="fas fa-arrow-right"></i> إلغاء والعودة للرئيسية</a>
     </form>
+
 </div>
+
 
 <script>
     function toggleSec(id, btn) {

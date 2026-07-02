@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" direction="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Hub | مستودع الإمداد</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --navy: #1a2a3a; --gold: #d4af37; --slate: #64748b; --bg: #f8fafc; --green: #198754; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 25px; direction: rtl; }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px 40px; border-radius: 15px; border-bottom: 5px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        .header-title h1 { color: var(--navy); margin: 0; font-size: 1.6rem; font-weight: 800; }
+        
+        .layout-grid { display: flex; gap: 25px; flex-wrap: wrap; }
+        .form-side { flex: 1; min-width: 320px; max-width: 400px; }
+        .table-side { flex: 3; min-width: 600px; }
+
+        .stats-grid { display: flex; gap: 15px; margin-bottom: 25px; width: 100%; }
+        .stat-card { flex: 1; background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.01); border-right: 5px solid var(--slate); display: flex; justify-content: space-between; align-items: center; }
+        .stat-card.pending { border-right-color: #f1c40f; }
+        .stat-card.purchased { border-right-color: #3498db; }
+        .stat-card.delivered { border-right-color: #2ecc71; }
+        .stat-info h3 { font-size: 1.6rem; margin: 0; color: var(--navy); font-weight: 800; }
+        .stat-info p { margin: 3px 0 0 0; color: var(--slate); font-weight: 700; font-size: 0.8rem; }
+
+        /* استمارة طلب شراء جديدة */
+        .procure-form-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 25px; border-top: 4px solid var(--green); }
+        .procure-form-box h2 { color: var(--navy); font-size: 1.15rem; font-weight: 800; margin: 0 0 20px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+
+        .search-filter-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 25px; }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 15px; }
+        .input-group label { font-weight: 700; color: var(--navy); font-size: 0.85rem; }
+        .input-group input, .input-group select, .input-group textarea { padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 700; outline: none; font-size: 0.9rem; color: var(--navy); font-family: inherit; box-sizing: border-box; }
+        
+        .btn-save-order { background: var(--green); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; width: 100%; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(25,135,84,0.2); }
+        .btn-search { background: var(--navy); color: white; border: none; padding: 11px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; height: 42px; }
+        .btn-print { background: var(--gold); color: var(--navy); border: none; padding: 11px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; height: 42px; }
+        .btn-back { background: #f1f5f9; color: var(--navy); text-decoration: none; padding: 11px 20px; border-radius: 10px; font-weight: 800; display: inline-block; text-align: center; font-size: 0.9rem; }
+
+        .table-container { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: var(--navy); color: white; padding: 15px; font-weight: 700; font-size: 0.85rem; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-weight: 700; font-size: 0.85rem; color: #334155; }
+        
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+        .badge.pending { background: #fef9c3; color: #713f12; }
+        .badge.purchased { background: #dbeafe; color: #1e40af; }
+        .badge.delivered { background: #dcfce7; color: #166534; }
+        .badge.cancelled { background: #fee2e2; color: #991b1b; }
+
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .form-side, .search-filter-box, .btn-search, .btn-print, .btn-back { display: none !important; }
+            .table-side { width: 100% !important; }
+            .admin-actions-th, .admin-actions-td { display: none !important; }
+            .header-section { border-bottom: 3px solid black; box-shadow: none; padding: 10px 0; }
+            table { width: 100%; border: 1px solid #cbd5e1; }
+            th { background: #1a2a3a !important; color: white !important; -webkit-print-color-adjust: exact; }
+            td, th { padding: 8px !important; border: 1px solid #cbd5e1 !important; }
+            
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر الملوكي -->
+    <div class="header-section">
+        <div class="header-title">
+            <h1><i class="fas fa-warehouse" style="color:var(--gold);"></i> Procurement Hub | مستودع الإمداد والقطع الذكي</h1>
+        </div>
+        <div>
+            <a href="{% url 'home' %}" class="btn-back"><i class="fas fa-arrow-right"></i> الرئيسية</a>
+        </div>
+    </div>
+
+    <!-- التوزيع المعماري للشاشة -->
+    <div class="layout-grid">
+        
+        <!-- الجانب الأيمن: استمارة الإدخال الفابريكا المفتوحة لجميع الطاقم والإدارة -->
+        <div class="form-side">
+            <div class="procure-form-box">
+                <h2><i class="fas fa-plus-circle" style="color:var(--green);"></i> تسجيل طلب شراء جديد</h2>
+                <form method="POST" action="{% url 'procurement_dashboard' %}">
+                    {% csrf_token %}
+                    
+                    <!-- 🛡️ الصبة الخرسانية: الحقل المخفي الصحيح والموحد لإجبار السيرفر على الحفظ الفوري -->
+                    <input type="hidden" name="action" value="create">
+                    
+                    <div class="input-group">
+                        <label>اسم القطعة / البيان الفني</label>
+                        <input type="text" name="item_name" placeholder="مثال: طلمبة هيدروليك 4 بوصة" required>
+                    </div>
+                    <div class="input-group">
+                        <label>الكمية والمواصفات</label>
+                        <input type="text" name="quantity" placeholder="مثال: عدد 2 قطعة - كوري أصلي" required>
+                    </div>
+                    <div class="input-group">
+                        <label>ملاحظات إضافية للموقع</label>
+                        <textarea name="admin_notes" rows="3" placeholder="اكتب هنا أي تفاصيل عاجلة تخص الشحن أو الموقع..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-save-order"><i class="fas fa-paper-plane"></i> إرسال الطلب للمستودع</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- الجانب الأيسر: عدادات الأرقام والجدول المجهز للبحث والطباعة -->
+        <div class="table-side">
+            
+            <!-- كروت الأعداد التراكمية الفورية -->
+            <div class="stats-grid">
+                <div class="stat-card pending">
+                    <div class="stat-info">
+                        <h3>{{ pending_count }}</h3>
+                        <p>طلبات معلقة</p>
+                    </div>
+                </div>
+                <div class="stat-card purchased">
+                    <div class="stat-info">
+                        <h3>{{ purchased_count }}</h3>
+                        <p>في الطريق للموقع</p>
+                    </div>
+                </div>
+                <div class="stat-card delivered">
+                    <div class="stat-info">
+                        <h3>{{ delivered_count }}</h3>
+                        <p>وصلت وتم الاستلام</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فلاتر البحث التاريخية والحد الفاصل -->
+            <div class="search-filter-box">
+                <form method="GET" class="filter-form">
+                    <div class="input-group" style="flex:1; margin-bottom:0;">
+                        <label>من تاريخ الطلب</label>
+                        <input type="date" name="start_date" value="{{ start_date }}">
+                    </div>
+                    <div class="input-group" style="flex:1; margin-bottom:0;">
+                        <label>إلى تاريخ الطلب</label>
+                        <input type="date" name="end_date" value="{{ end_date }}">
+                    </div>
+                    <div class="input-group" style="flex:1; margin-bottom:0;">
+                        <label>الحالة</label>
+                        <select name="status">
+                            <option value="">-- كل الحالات --</option>
+                            <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>⏳ طلب معلق</option>
+                            <option value="purchased" {% if current_status == 'purchased' %}selected{% endif %}>💳 تم الشراء</option>
+                            <option value="delivered" {% if current_status == 'delivered' %}selected{% endif %}>✅ تم الاستلام</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-search"><i class="fas fa-search"></i> فرز</button>
+                    <button type="button" class="btn-print" onclick="window.print();"><i class="fas fa-print"></i> طباعة</button>
+                </form>
+            </div>
+
+            <!-- جدول رادار المشتريات المطور بأزرار التحكم الفورية -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>تاريخ الطلب</th>
+                            <th>اسم القطعة المطلوب شراءها</th>
+                            <th>الكمية والمواصفة</th>
+                            <th>طالب الطلب</th>
+                            <th>تاريخ التنفيذ</th>
+                            <th>تاريخ الاستلام بالرصيف</th>
+                            <th>الحالة اللوجستية</th>
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <th class="admin-actions-th">التحكم الفوري (للإدارة)</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.date_requested|date:"Y-m-d" }}</td>
+                            <td style="color:var(--navy); font-weight:800;"><i class="fas fa-gear" style="color:var(--slate); font-size:0.8rem; margin-left:5px;"></i>{{ order.item_name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>{{ order.requested_by.name|default:"الإدارة" }}</td>
+                            <td>{{ order.date_executed|date:"Y-m-d"|default:"--" }}</td>
+                            <td>{{ order.date_delivered|date:"Y-m-d"|default:"--" }}</td>
+                            <td>
+                                <span class="badge {{ order.status }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <!-- 🛡️ عرض أدوات التحكم فقط إذا كان الحساب يخص الإدارة العليا -->
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <td class="admin-actions-td">
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    
+                                    <!-- فورم سريع لتحديث الحالة بقائمة منسدلة خاطفة -->
+                                    <form method="POST" style="margin:0; display:inline-block;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_status">
+                                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                                        <select name="new_status" onchange="this.form.submit();" style="padding:5px 8px; border-radius:8px; border:1px solid #cbd5e1; font-weight:700; font-size:0.8rem; background:#f8fafc; color:var(--navy); cursor:pointer;">
+                                            <option value="" selected disabled>🔄 تغيير الحالة</option>
+                                            <option value="pending">⏳ طلب معلق</option>
+                                            <option value="purchased">💳 تم الشراء</option>
+                                            <option value="delivered">✅ تم الاستلام</option>
+                                            <option value="cancelled">❌ إلغاء الطلب</option>
+                                        </select>
+                                    </form>
+
+                                    <!-- زر الحذف الجراحي النهائي مع رسالة تأكيد لحماية البيانات -->
+                                    <form method="POST" style="margin:0; display:inline-block;" onsubmit="return confirm('⚠️ هل أنت متأكد من حذف هذا الطلب نهائياً من المستودع؟');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_order">
+                                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                                        <button type="submit" style="background:#fee2e2; color:#991b1b; border:none; padding:6px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.8rem; transition:0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'">
+                                            <i class="fas fa-trash-alt"></i> حذف
+                                        </button>
+                                    </form>
+                                    
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align:center; color:var(--slate); padding:40px;">⚠️ لا يوجد طلبات شراء مسجلة حالياً ضمن فلاتر البحث.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

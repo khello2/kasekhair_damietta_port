@@ -20,6 +20,7 @@ from core import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
 
 urlpatterns = [
     # 1. لوحة الأدمين (تم إرجاعها للمكان الصحيح)
@@ -42,9 +43,9 @@ urlpatterns = [
     path('pipe-report/new/', views.pipefighter_form_view, name='pipe_report'),
     path('pipe-report/<int:report_id>/', views.pipe_report_detail, name='pipe_report_detail'),
 
-    # --- قسم جرد بحرية الكراكة (المشغلين) ---
-    path('marine-inventory/new/', views.start_marine_inventory, name='start_marine_inventory'),
-    path('marine-inventory/list/', views.marine_inventory_list, name='marine_inventory_list'),
+    # --- قسم جرد بحرية الكراكة المطور (مربوط برقم الكراكة بالملّي لمنع التداخل) ---
+    path('marine-inventory/new/<int:dredger_id>/', views.start_marine_inventory, name='start_marine_inventory'),
+    path('marine-inventory/list/<int:dredger_id>/', views.marine_inventory_list, name='marine_inventory_list'),
     path('marine-inventory/print/<int:report_id>/', views.print_marine_inventory, name='print_marine_inventory'),
 
     # --- قسم مخزن البر / الموقع (الإنفنتوري) ---
@@ -60,6 +61,11 @@ urlpatterns = [
     # الأكشن السريع (بدء/توقف)
     path('action/<int:dredger_id>/<str:action_type>/', views.quick_action, name='quick_action'),
 
+    path('reports/<int:report_id>/close/', views.close_report_permanently, name='close_report_permanently'),
+    # التحديث المؤمن: جعل رابط الطوارئ صافي لتفادي الـ NoReverseMatch نهائياً
+    path('emergency/raise/', views.raise_emergency_alert, name='raise_emergency_alert'),
+    path('emergency/resolve/<int:alert_id>/', views.resolve_emergency_alert, name='resolve_emergency_alert'),
+    path('procurement/', views.procurement_dashboard, name='procurement_dashboard'),
 
 ] 
 

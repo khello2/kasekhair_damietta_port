@@ -24,6 +24,8 @@ class Staff(models.Model):
     team_type = models.CharField(max_length=20, choices=TEAM_TYPE, verbose_name="نوع الطاقم")
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, verbose_name="الوظيفة")
     phone = models.CharField(max_length=15, verbose_name="رقم الهاتف", null=True, blank=True)
+    dredger = models.ForeignKey('Dredger', on_delete=models.SET_NULL, null=True, blank=True)
+    dredger = models.ForeignKey('Dredger', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="الكراكة المعين عليها")
 
     class Meta:
         verbose_name = "موظف"
@@ -53,14 +55,23 @@ class DailyProjectReport(models.Model):
     dredger = models.ForeignKey(Dredger, on_delete=models.CASCADE, verbose_name="الكراكة")
     date_started = models.DateField(verbose_name="تاريخ يوم العمل")
     is_closed = models.BooleanField(default=False, verbose_name="تم إغلاق اليوم")
-        # مفتاح تحكم ذكي لإظهار أو إخفاء الكمية المكعبة من الورقة الرسمية للتقرير
     show_quantity_in_report = models.BooleanField(default=True, verbose_name="إظهار إجمالي المكعبات في التقرير المطبوع")
+
+    # 🔒 حقول الصب الثابتة المعتمدة (تُلقم عند الإغلاق لمنع تكرار الحسابات)
+    frozen_total_m3 = models.FloatField(default=0.0, verbose_name="إجمالي المكعبات المجمدة")
+    frozen_total_meters = models.FloatField(default=0.0, verbose_name="إجمالي الأمتار المجمدة")
+    frozen_work_hours = models.CharField(max_length=10, default="00:00", verbose_name="ساعات التشغيل المجمدة")
+    frozen_stop_hours = models.CharField(max_length=10, default="00:00", verbose_name="ساعات التوقف المجمدة")
+    frozen_fuel_usage = models.FloatField(default=0.0, verbose_name="استهلاك السولار المجمد")
+    frozen_main_net = models.CharField(max_length=10, default="00:00", verbose_name="صافي ساعات الرئيسي المجمد")
+    frozen_aux_net = models.CharField(max_length=10, default="00:00", verbose_name="صافي ساعات المساعد المجمد")
 
     class Meta:
         verbose_name = "تقرير يومي مجمع"
         verbose_name_plural = "التقارير اليومية المجمعة"
 
     def __str__(self): return f"{self.dredger.name} - {self.date_started}"
+
 
 class WorkShift(models.Model):
     SHIFT_TYPE = [('morning', 'صباحي (نهار)'), ('night', 'مسائي (ليل)')]
@@ -97,6 +108,12 @@ class WorkShift(models.Model):
 
     def clean(self):
         super().clean()
+        
+        # 🎯 حارس التطهير الصامت: لو الوردية دي مش تسليم عهدة صريح، والملاحظات عهدة معلقة،
+        # نطهر الملاحظات فوراً لكسر الدائرة المعلقة بره، مع الحفاظ الكامل على الحالة المورثة بدون تغيير
+        if self.status != 'handover' and self.stop_reason == "عهدة معلقة بانتظار الاستلام":
+            self.stop_reason = ""
+        
         if self.start_time and self.end_time:
             # توقيت القاهرة الفاصل لليوم
             cairo_tz = pytz.timezone('Africa/Cairo')
@@ -113,26 +130,25 @@ class WorkShift(models.Model):
                     "من فضلك اجعل وقت النهاية 12:00 تماماً لهذا السجل، "
                     "ثم افتح سجلاً جديداً لما بعد الساعة 12."
                 )
-    report_24h = models.ForeignKey(DailyProjectReport, on_delete=models.CASCADE, related_name='shifts', null=True, blank=True, verbose_name="اليوم المرتبط")
-    operator = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, verbose_name="المشغل")
+
+    # 🧱 2. حقول الربط الأساسية والتواريخ
+    report_24h = models.ForeignKey('DailyProjectReport', on_delete=models.CASCADE, related_name='shifts', null=True, blank=True, verbose_name="اليوم المرتبط")
+    operator = models.ForeignKey('Staff', on_delete=models.SET_NULL, null=True, verbose_name="المشغل")
     shift_time = models.CharField(max_length=10, choices=SHIFT_TYPE, verbose_name="فترة الوردية", null=True, blank=True)
 
-    # التوقيت: جعلناه يسجل لحظة الضغط تلقائياً
     start_time = models.DateTimeField(default=timezone.now, verbose_name="وقت الاستلام/البدء")
     end_time = models.DateTimeField(null=True, blank=True, verbose_name="وقت التسليم/التوقف")
 
-    # الإحداثيات: جعلناها اختيارية (blank=True) لكي لا ينهار السيستم عند ضغطة الزر الأولى
+    # 📍 3. حقول الإحداثيات والخطوط المرنة
     start_east = models.FloatField(null=True, blank=True, verbose_name="E البداية")
     start_north = models.FloatField(null=True, blank=True, verbose_name="N البداية")
     end_east = models.FloatField(null=True, blank=True, verbose_name="E النهاية")
     end_north = models.FloatField(null=True, blank=True, verbose_name="N النهاية")
 
     quantity_m3 = models.FloatField(default=0, verbose_name="الكمية المكعبة")
-    progress_meters = models.FloatField(default=0, verbose_name="أمتار التقدم (من الخريطة)")
+    progress_meters = models.FloatField(null=True, blank=True, verbose_name="أمتار التقدم (من الخريطة)")
     depth = models.FloatField(default=0, verbose_name="العمق")
 
-    # داخل كلاس WorkShift في models.py
-    # ... الحقول السابقة ...
     floating_line = models.FloatField(default=0, verbose_name="طول الخط العائم (م)")
     land_line = models.FloatField(default=0, verbose_name="طول الخط الأرضي (م)")
 
@@ -140,15 +156,34 @@ class WorkShift(models.Model):
     def total_line_length(self):
         return (self.floating_line or 0) + (self.land_line or 0)
 
-
-    # الأعطال
+    # ⚠️ 4. الأعطال والصور
     stop_reason = models.TextField(null=True, blank=True, verbose_name="سبب التوقف")
     stop_image = models.ImageField(upload_to='stops/%Y/%m/', null=True, blank=True, verbose_name="صورة التوقف")
 
-    # الماكينات: أضفت لك الماكينة المساعدة كما طلبت
-    main_engine_hours = models.FloatField(default=0, verbose_name="ساعات الماكينة الرئيسية")
-    aux_engine_hours = models.FloatField(default=0, verbose_name="ساعات الماكينة المساعدة") # حقل جديد
+    # ⚙️ 5. ساعات الماكينات وحساب مدد حرق الديزل
+    main_engine_hours = models.FloatField(default=0, verbose_name="sاعات الماكينة الرئيسية")
+    aux_engine_hours = models.FloatField(default=0, verbose_name="ساعات الماكينة المساعدة")
     fuel_usage = models.FloatField(default=0, verbose_name="السولار المستهلك")
+
+    fuel_start = models.FloatField(default=0, verbose_name="كمية السولار بداية الوردية (لتر)")
+    fuel_end = models.FloatField(default=0, verbose_name="كمية السولار نهاية الوردية (لتر)")
+    fuel_received = models.FloatField(default=0, verbose_name="السولار المستلم/تموين (لتر)")
+    
+    # ⛽ حقول الخصم والتحويل الثلاثية لضبط ميزان السولار المنقول لشيفت B
+    fuel_to_dredger = models.FloatField(default=0.0, verbose_name="سولار منقول لكراكة أخرى (لتر)")
+    fuel_to_excavator = models.FloatField(default=0.0, verbose_name="سولار منقول لحفار خدمة (لتر)")
+    fuel_to_multicat = models.FloatField(default=0.0, verbose_name="سولار منقول لمعدة بحرية/مالتي كات (لتر)")
+
+    main_engine_start = models.FloatField(default=0, verbose_name="ساعة الماكينة الرئيسية (بداية)")
+    main_engine_end = models.FloatField(default=0, verbose_name="ساعة الماكينة الرئيسية (نهاية)")
+
+    aux_engine_start = models.FloatField(default=0, verbose_name="ساعة الماكينة المساعدة (بداية)")
+    aux_engine_end = models.FloatField(default=0, verbose_name="ساعة الماكينة المساعدة (نهاية)")
+
+    # 📏 6. الصبة الخرسانية الكبرى: تطهير حقول الأعماق والسوينج تماماً من الـ default لمنع التعليق
+    depth_before = models.FloatField(null=True, blank=True, verbose_name="العمق قبل التكريك (م)")
+    depth_after = models.FloatField(null=True, blank=True, verbose_name="العمق بعد التكريك (م)")
+    swing_width = models.FloatField(null=True, blank=True, verbose_name="عرض السوينج (م)")
 
     class Meta:
         verbose_name = "سجل وردية"
@@ -157,47 +192,83 @@ class WorkShift(models.Model):
     def __str__(self):
         return f"{self.operator if self.operator else 'بدون اسم'} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
 
+    # 💎 محرك التوريث التلقائي الآمن: توريث الأعماق والسوينج فقط، وتصفير أمتار التقدم منعا للخطأ البشري
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # الفحص: لو السجل ده لسه جديد تماماً ومفتوحش في قاعدة البيانات
+        if not self.pk:
+            try:
+                # جلب آخر سجل وردية مسجل تاريخياً في قاعدة البيانات بالكامل للكراكة
+                last_recorded = WorkShift.objects.filter(
+                    depth_before__isnull=False
+                ).order_by('-id').first()
 
-    # داخل كلاس WorkShift في models.py
-    # --- حقول السولار الجديدة ---
-    fuel_start = models.FloatField(default=0, verbose_name="كمية السولار بداية الوردية (لتر)")
-    fuel_end = models.FloatField(default=0, verbose_name="كمية السولار نهاية الوردية (لتر)")
-    fuel_received = models.FloatField(default=0, verbose_name="السولار المستلم/تموين (لتر)")
-    # حقل fuel_usage سيصبح مخفياً أو للقراءة فقط ويحسبه السيستم
-
-    # --- حقول المحركات الجديدة ---
-    main_engine_start = models.FloatField(default=0, verbose_name="ساعة الماكينة الرئيسية (بداية)")
-    main_engine_end = models.FloatField(default=0, verbose_name="ساعة الماكينة الرئيسية (نهاية)")
-
-    aux_engine_start = models.FloatField(default=0, verbose_name="ساعة الماكينة المساعدة (بداية)")
-    aux_engine_end = models.FloatField(default=0, verbose_name="ساعة الماكينة المساعدة (نهاية)")
-    depth_before = models.FloatField(default=0.0, verbose_name="العمق قبل التكريك (م)")
-    depth_after = models.FloatField(default=0.0, verbose_name="العمق بعد التكريك (م)")
-    swing_width = models.FloatField(default=0.0, verbose_name="عرض السوينج (م)")
+                if last_recorded:
+                    # 🧬 توريث جينات الأعماق والسوينج الثابتة تلقائياً في الخانات
+                    if self.depth_before is None or self.depth_before == 0.0:
+                        self.depth_before = last_recorded.depth_before
+                    if self.depth_after is None or self.depth_after == 0.0:
+                        self.depth_after = last_recorded.depth_after
+                    if self.swing_width is None or self.swing_width == 0.0:
+                        self.swing_width = last_recorded.swing_width
+                
+                # 🚫 الإجبار الأمني عافية: تصفير أمتار التقدم لكي يكتبها المشغل بنفسه في البحر
+                self.progress_meters = 0.0
+            except Exception:
+                # حماية هيدروليكية صامتة منعاً للكراش
+                pass
 
     def save(self, *args, **kwargs):
-        # 1. حساب ساعات تشغيل المحركات (تراكمي حقيقي) بناءً على قراءات العدادات الفعلي
-        if self.main_engine_end and self.main_engine_start and float(self.main_engine_end) >= float(self.main_engine_start):
-            self.main_engine_hours = float(self.main_engine_end) - float(self.main_engine_start)
+        # 1. ⚙️ محرك حساب ساعات تشغيل المحركات (رئيسي ومساعد) الفعلي
+        if self.main_engine_end and self.main_engine_start and float(self.main_engine_end) > 0:
+            self.main_engine_hours = max(0.0, float(self.main_engine_end) - float(self.main_engine_start))
         else:
             self.main_engine_hours = 0.0
 
-        if self.aux_engine_end and self.aux_engine_start and float(self.aux_engine_end) >= float(self.aux_engine_start):
-            self.aux_engine_hours = float(self.aux_engine_end) - float(self.aux_engine_start)
+        if self.aux_engine_end and self.aux_engine_start and float(self.aux_engine_end) > 0:
+            self.aux_engine_hours = max(0.0, float(self.aux_engine_end) - float(self.aux_engine_start))
         else:
             self.aux_engine_hours = 0.0
 
-        # 2. حساب استهلاك السولار الصافي الفعلي للوردية
-        if self.fuel_start and self.fuel_end:
-            self.fuel_usage = (float(self.fuel_start) + float(self.fuel_received or 0)) - float(self.fuel_end)
+        # 2. ⛽ ميزان السولار المطور والمعدل لرفع الظلم عن شيفت B
+        # الحساب بيتم فقط لو دخلنا "سولار نهاية الوردية" أكبر من الصفر
+        if self.fuel_end and float(self.fuel_end) > 0:
+            total_available = float(self.fuel_start or 0.0) + float(self.fuel_received or 0.0)
+            
+            # تجميع الـ 3 خيارات بتوع السولار المنقول بره تانك الكراكة
+            total_transferred = (
+                float(getattr(self, 'fuel_to_dredger', 0.0) or 0.0) + 
+                float(getattr(self, 'fuel_to_excavator', 0.0) or 0.0) + 
+                float(getattr(self, 'fuel_to_multicat', 0.0) or 0.0)
+            )
+            
+            # الاستهلاك الصافي لحرق الماكينات = المتاح - النهاية - إجمالي المنقول الثلاثي
+            self.fuel_usage = max(0.0, total_available - float(self.fuel_end) - total_transferred)
         else:
             self.fuel_usage = 0.0
 
-        # 3. حساب الكمية المكعبة (الإنتاجية التقريبية) من حقول العمق الفعلي للموديل الجديد
-        depth_diff = abs(float(self.depth_after or 0.0) - float(self.depth_before or 0.0))
-        self.quantity_m3 = round(depth_diff * (float(self.progress_meters or 0.0)) * (float(self.swing_width or 0.0)), 2)
+        # 📏 الحساب الهندسي الآمن للكمية بالمكعب (محمي 100% ضد الفراغ في الأدمن بانل)
+        if hasattr(self, 'depth_after') and hasattr(self, 'depth_before') and self.depth_after is not None and self.depth_before is not None:
+            try:
+                # الفحص: لو الخانات مسجلة صفر أو فاضية تماماً، يتخطى الحسبة وينزلها صفر صامت
+                d_after = float(self.depth_after)
+                d_before = float(self.depth_before)
+                progress = float(self.progress_meters or 0.0)
+                swing = float(self.swing_width or 0.0)
+                
+                if d_after > 0.0 and d_before > 0.0 and progress > 0.0:
+                    depth_diff = abs(d_after - d_before)
+                    self.quantity_m3 = round(depth_diff * progress * swing, 2)
+                else:
+                    self.quantity_m3 = 0.0
+            except (ValueError, TypeError):
+                self.quantity_m3 = 0.0
+        else:
+            self.quantity_m3 = 0.0
 
         super().save(*args, **kwargs)
+
+
 
 class PipeFighterOperations(models.Model):
     SHIFT_CHOICES = [('morning', 'صباحي'), ('night', 'مسائي')]
@@ -334,38 +405,6 @@ class SupportEquipment(models.Model):
         verbose_name = "معدة مساعدة"
         verbose_name_plural = "المعدات المساعدة (الأسطول)"
 
-# 2. سجل حركة السولار العام (ميزان الموقع)
-class FuelMovement(models.Model):
-    MOVE_TYPE = [
-        ('in', 'وارد للموقع (من المورد)'),
-        ('out', 'منصرف لمعدة (استهلاك)')
-    ]
-
-    # تحديد المصادر والوجهات بدقة كما شرحت لي
-    SOURCE_CHOICES = [
-        ('truck', 'عربية السولار (المورد الخارجي)'),
-        ('multicat_tank', 'عهدة المالتي كات (الفنطاس)'),
-        ('admin_tank', 'خزان الموقع الإداري (التانك الأرضي)')
-    ]
-
-    date = models.DateTimeField(default=timezone.now, verbose_name="التاريخ والوقت")
-    move_type = models.CharField(max_length=5, choices=MOVE_TYPE, verbose_name="نوع الحركة")
-    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, verbose_name="مصدر السولار")
-
-    # لمن نرسل السولار؟ (إما كراكة، أو معدة مساعدة)
-    destination_dredger = models.ForeignKey('Dredger', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="الجهة المستلمة: كراكة")
-    destination_equipment = models.ForeignKey(SupportEquipment, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="الجهة المستلمة: معدة أخرى")
-
-    amount = models.FloatField(verbose_name="الكمية (لتر)")
-    notes = models.CharField(max_length=255, blank=True, verbose_name="ملاحظات (رقم بون / اسم السائق)")
-
-    def __str__(self):
-        return f"{self.date.date()} | {self.get_move_type_display()} | {self.amount} لتر"
-
-    class Meta:
-        verbose_name = "حركة سولار"
-        verbose_name_plural = "سجل حركات السولار (الميزان)"
-# أضف هذا في core/models.py
 
 # 1. جدول الأقسام (تنشئه من الأدمين براحتك)
 class InventoryCategory(models.Model):
@@ -424,3 +463,53 @@ class InventoryTransaction(models.Model):
     class Meta:
         verbose_name = "معاملة جرد"
         verbose_name_plural = "سجل معاملات الجرد"
+
+class EmergencyAlert(models.Model):
+    ALERT_TYPES = [
+        ('pipe_rubber', '🚨 قطع رابر بخط الطرد'),
+        ('pipe_crack', '🚨 شرخ ماسورة بخط الطرد'),
+        ('pipe_out', '🚨 خروج الخط عن المسار'),
+        ('fuel_urg', '🚨 طلب تموين سولار عاجل'),
+    ]
+    
+    dredger = models.ForeignKey(Dredger, on_delete=models.CASCADE, related_name='alerts', verbose_name="الكراكة")
+    operator = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, verbose_name="المُبلّغ")
+    alert_type = models.CharField(max_length=30, choices=ALERT_TYPES, verbose_name="نوع الطوارئ")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="توقيت البلاغ")
+    is_resolved = models.BooleanField(default=False, verbose_name="تم التعامل وحل المشكلة")
+
+    class Meta:
+        verbose_name = "بلاغ طوارئ وعطل عاجل"
+        verbose_name_plural = "بلاغات الطوارئ الأعطال العاجلة"
+
+    def __str__(self):
+        return f"{self.dredger.name} - {self.get_alert_type_display()}"
+
+class ProcurementOrder(models.Model):
+    STATUS_CHOICES = [
+        ('pending', '⏳ طلب معلق (قيد الدراسة)'),
+        ('purchased', '💳 تم الشراء (في الطريق للموقع)'),
+        ('delivered', '✅ وصل الموقع وتم الاستلام'),
+        ('cancelled', '❌ تم إلغاء الطلب'),
+    ]
+    
+    item_name = models.CharField(max_length=255, verbose_name="اسم العنصر / القطعة المطلوب شراءها")
+    quantity = models.CharField(max_length=100, verbose_name="الكمية والمواصفة الفنية")
+    requested_by = models.ForeignKey('Staff', on_delete=models.SET_NULL, null=True, verbose_name="المهندس / الكابتن طالب الشراء")
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="حالة التنفيذ الحالية")
+    
+    date_requested = models.DateField(auto_now_add=True, verbose_name="تاريخ طلب الشراء التلقائي")
+    date_executed = models.DateField(null=True, blank=True, verbose_name="تاريخ تنفيذ الشراء الفعلي")
+    date_delivered = models.DateField(null=True, blank=True, verbose_name="تاريخ الاستلام في الميناء")
+    
+    estimated_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0.0, verbose_name="التكلفة التقديرية / الفعلية")
+    admin_notes = models.TextField(blank=True, verbose_name="ملاحظات الإدارة والفواتير")
+
+    class Meta:
+        ordering = ['-date_requested', '-id']
+        verbose_name = "طلب شراء لوجستي"
+        verbose_name_plural = "خزان المشتريات والقطع"
+
+    def __str__(self):
+        return f"{self.item_name} ({self.get_status_display()})"

@@ -2,13 +2,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kased Khair | Project Portal</title>
-
     <!-- روابط سريعة وخفيفة لعدم تجميد الشاشة -->
     <link rel="stylesheet" href="cloudflare.com">
     <link rel="stylesheet" href="jsdelivr.net">
+
+        <!-- 🧼 مكنسة الطوارئ: إبادة السيرفس وركر القديم تماماً لمنع تعليق تسجيل الدخول عشوائياً -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister().then(function(boolean) {
+                        console.log('🧼 Cleaned Old Service Worker successfully!');
+                    });
+                }
+            });
+        }
+    </script>
 
     <style>
         :root { --navy: #1a2a3a; --gold: #d4af37; --light-bg: #f4f7f6; }
@@ -25,10 +38,7 @@
         /* 2. الهيدر والشعار بالخلفية البيضاء النظيفة */
         .white-top-section { background: #ffffff !important; text-align: center; padding: 25px 20px; border-bottom: 5px solid var(--gold); }
         .logo { width: 140px; margin-bottom: 12px; }
-        .news-ticker-container { background: #fffdf2; border-bottom: 3px solid var(--gold); height: 45px; display: flex; align-items: center; overflow: hidden; }
-        .ticker-label { background: var(--navy); color: var(--gold); padding: 0 20px; height: 100%; display: flex; align-items: center; font-weight: bold; white-space: nowrap; }
-        .ticker-item { color: #333; font-weight: 600; font-size: 1rem; margin-right: 15px; }
-        .ticker-separator { color: var(--gold); padding: 0 15px; }
+
 
         /* 3. شريط الحالة وكروت الكراكات (الكحلي الفخم الموحد) */
         .live-status-container { background: var(--navy) !important; color: white; padding: 30px 0 10px 0; }
@@ -92,13 +102,20 @@
 
     <!-- 1. المربع الأبيض العلوي الموحد (الـ Top Nav بالإنجليزي) -->
     <div class="top-nav no-print">
-        <a href="/admin"><i class="fas fa-cog城乡 me-1"></i> Admin Panel</a>
+        <!-- 👑 إخفاء رابط لوحة الأدمن تماماً عن المشغلين لزيادة الأمان والأناقة -->
+        {% if request.user.is_staff or request.user.is_superuser %}
+            <a href="/admin"><i class="fas fa-cog me-1"></i> Admin Panel</a>
+        {% endif %}
+        
         <span class="user-tag">User: <strong>{{ user.username }}</strong></span>
-        <form action="/admin/logout/" method="post" style="display:inline;">
+        
+        <!-- 🟢 تحويل المسار للممر العام النظيف المأمن لفتح صفحتك الفاخرة بدون رسائل حمراء -->
+        <form action="/accounts/logout/" method="post" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="btn-logout ms-3">Logout</button>
         </form>
     </div>
+
 
     <!-- 2. الهيدر والشعار بالخلفية البيضاء الممتدة حتى كروت الكراكات -->
     <div class="white-top-section">
@@ -108,74 +125,92 @@
         <p class="text-muted small mb-0" style="font-size: 0.85rem; font-weight: 600;">Eastern Barrier Reclamation Project - Damietta Port</p>
     </div>
 
-    <!-- 3. الشريط الإخباري الفابريكا النهائي (انسياب عكسي من اليسار لليمين) -->
+    <!-- 3. الشريط الإخباري الفابريكا المطور (انسياب حريري صبة خرسانية من اليسار لليمين بدون أي رعشة) -->
     {% if news %}
     <div class="news-ticker-container no-print">
-        <!-- اليافطة الكحلي ثابتة ومحكومة على اليمين لراحة العين -->
         <div class="ticker-label"><i class="fas fa-bullhorn me-1"></i> تنبيهات العمل</div>
         <div class="ticker-content-wrapper">
             <div class="ticker-moving-track">
-                <!-- تكرار التنبيهات مرتين متتاليين لضمان اتصال الجمل بدون فراغات بيضاء -->
-                {% for item in news %}
-                    <span class="ticker-item">{{ item.message }}</span>
-                    <span class="ticker-separator"> ★ </span>
-                {% endfor %}
-                {% for item in news %}
-                    <span class="ticker-item">{{ item.message }}</span>
-                    <span class="ticker-separator"> ★ </span>
-                {% endfor %}
+                <div class="ticker-block">
+                    {% for item in news %}
+                        <span class="ticker-item">{{ item.message }}</span>
+                        <span class="ticker-separator"> ★ </span>
+                    {% endfor %}
+                </div>
+                <div class="ticker-block">
+                    {% for item in news %}
+                        <span class="ticker-item">{{ item.message }}</span>
+                        <span class="ticker-separator"> ★ </span>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- الهندسة الفنية النهائية للتحريك المعكوس الانسيابي -->
     <style>
         .news-ticker-container { background: #fdf7e3; border-bottom: 3px solid var(--gold); height: 45px; display: flex; align-items: center; overflow: hidden; position: relative; width: 100%; direction: rtl !important; }
-        
-        /* يافطة التنبيهات ثابتة على اليمين تماماً */
         .ticker-label { background: var(--navy); color: var(--gold); padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: bold; font-size: 0.85rem; z-index: 10; white-space: nowrap; order: 1; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
-        
-        /* مجرى انسياب الكلام مقيد على يسار اليافطة */
         .ticker-content-wrapper { overflow: hidden; height: 100%; display: flex; align-items: center; position: relative; flex: 1; order: 2; direction: ltr !important; }
         
-        /* محرك الحركة المتصلة المعكوسة: جعل الجمل تنساب من اليسار وتجري لليمين بنعومة فائقة */
         .ticker-moving-track { 
             display: flex; 
             white-space: nowrap; 
-            padding-left: 100%; 
-            animation: kasedTickerFinalLeftToRight 25s linear infinite; 
             width: max-content;
+            animation: kasedTickerSilkSmoothRight 35s linear infinite; 
+            will-change: transform;
             direction: ltr !important;
+            transform: translate3d(-50%, 0, 0);
         }
         
-        /* الحفاظ على الكلمات لغة عربية سليمة ومفهومة بدون قلب الحروف */
+        .ticker-block { display: flex; align-items: center; }
         .ticker-item { color: #1a2a3a; font-weight: 700; font-size: 0.95rem; display: inline-block; direction: rtl !important; }
-        .ticker-separator { color: var(--gold); padding: 0 25px; font-weight: bold; }
-
-        /* تثبيت النص عند وضع صباعك للقراءة على الموبايل */
+        .ticker-separator { color: var(--gold); padding: 0 25px; font-weight: bold; display: inline-block; }
         .ticker-content-wrapper:hover .ticker-moving-track { animation-play-state: paused; cursor: pointer; }
 
-        /* الأنميشن الهندسي الدقيق للتدفق العكسي المتصل */
-        @keyframes kasedTickerFinalLeftToRight {
+        @keyframes kasedTickerSilkSmoothRight {
             0% { transform: translate3d(-50%, 0, 0); }
             100% { transform: translate3d(0, 0, 0); }
         }
     </style>
     {% endif %}
 
-
-
-    <!-- 4. شريط الحالة الحي للكراكات (تنسيق عربي RTL متناسق بالكامل باللون الكحلي الفخم) -->
-    <div class="live-status-container">
+    <!-- 4. شريط الحالة الحي للكراكات (تطهير كامل من التداخل والشرطات المائلة) -->
+    <div class="live-status-container" style="direction: rtl !important; text-align: right;">
         <div class="container">
             <div class="row m-0 p-0">
             {% for d in dredger_status_list %}
+                
+                <!-- 🛡️ حارس الفلترة الأمني الفوري: لو المشغل مش إدمن والكارد ده مش بتاعه، اطرده صامتاً لمنع ظهور الكراكة الثانية -->
+                {% if not request.user.is_staff and not request.user.is_superuser and d.id != request.user.staff.dredger.id %}
+                    <!-- تخطي صامت للكراكة الأخرى المعلقة في الكاش -->
+                {% else %}
+
+                <!-- 🚨 شريط الطوارئ الأحمر الفخم: يقرا مباشرة من الكائن الأصلي للكراكة عافية -->
+                {% for alert in d.object.alerts.all %}
+                    {% if not alert.is_resolved %}
+                        <div class="alert alert-danger text-center fw-bold py-3 mb-3 col-12 shadow-lg animate-pulse" 
+                             style="font-size: 0.9rem; border-radius: 10px; z-index: 10; border-right: 6px solid #dc3545; background-color: #fff5f5; color: #dc3545 !important;">
+                            <i class="fas fa-exclamation-triangle text-danger"></i> بلاغ طوارئ عاجل بكراكة ({{ d.name }}): {{ alert.get_alert_type_display }} <br>
+                            <span style="font-size: 0.75rem; color: #555; font-weight: bold; display: block; margin-bottom: 5px;">
+                                المُبلّغ: {{ alert.operator.name|default:"غير محدد" }} | ⏰ التوقيت: {{ alert.created_at|date:"H:i" }}
+                            </span>
+                            
+                            <!-- 🛠️ زرار الإغلاق السحري: يمرر رقم البلاغ الفعلي لقفل العطل فوراً -->
+                            <div class="mt-2 text-center">
+                                <a href="{% url 'resolve_emergency_alert' alert.id %}" class="btn btn-sm btn-success fw-bold px-4 rounded-pill shadow-sm" style="font-size: 0.75rem; background-color: #28a745; border: none;">
+                                    <i class="fas fa-check-circle"></i> ✅ تم الإصلاح وحل المشكلة 
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
                 {% if d.can_view %}
                 <div class="col-12 mb-4">
-                    <!-- كارت الكراكة المنفصل - تم تعديل الاتجاه للغة العربية بالكامل -->
+                    <!-- كارت الكراكة المنفصل -->
                     <div class="vessel-row shadow-sm position-relative" style="padding: 20px; direction: rtl !important; margin-bottom: 5px; text-align: right;">
 
-                        <!-- مؤشر السولار اللحظي (أعلى اليمين الآن ليطابق التنسيق العربي) -->
+                        <!-- مؤشر السولار اللحظي -->
                         <div class="position-absolute top-0 end-0 p-2" style="z-index: 5;">
                             <div class="bg-white bg-opacity-75 rounded-pill px-2 py-1 border shadow-sm d-flex align-items-center" style="direction: ltr !important;">
                                 <span class="status-bulb bg-{{ d.fuel_alert }} me-1"></span>
@@ -197,7 +232,6 @@
                                         <div class="status-dot-animated" style="width: 10px !important; height: 10px !important; border-radius: 50% !important; display: inline-block !important; flex-shrink: 0; background-color: {% if d.status_code == 'active' %}#00ff00{% else %}#ff3333{% endif %}; margin-right: 8px; margin-left: 0;"></div>
                                     </div>
 
-
                                     <div class="d-flex flex-column gap-2 mt-1">
                                         <a href="tel:{{ d.vessel_phone }}" class="text-decoration-none d-flex align-items-center gap-2" style="width:fit-content;">
                                             <i class="fas fa-ship text-gold" style="font-size: 0.8rem;"></i>
@@ -215,56 +249,69 @@
                                 </div>
                             </div>
 
-                            <!-- [الجانب الأيسر الجديد]: أزرار التحكم وجرد البحرية المخصصة (RTL ومحاذاة لليزار للـ التوازن) -->
+                            <!-- 🎛️ علبة التحكم اليسرى الملمومة الفخمة -->
                             <div style="width: 45% !important; direction: rtl !important; text-align: left;">
                                 {% if d.can_add %}
                                 <div class="d-flex flex-column gap-2 me-auto" style="width: 175px !important; margin-left: auto; margin-right: 0;">
+                                    
+                                    <!-- 🟢 1. الشرط الأعلى: استلام عهدة -->
                                     {% if d.is_handed_over %}
-                                        <!-- 🟢 زر استلام عهدة (بدء تشغيل أوتوماتيك) -->
-                                        <a href="{% url 'quick_action' dredger_id=d.id action_type='start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                                            <span style="font-size: 0.85rem; font-weight: 800;">استلام عهدة</span>
+                                        <a href="{% url 'quick_action' dredger_id=d.id action_type='handover' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important; background-color: #28a745 !important;">
+                                            <span style="font-size: 0.85rem; font-weight: 800;">📥 استلام العهدة</span>
                                         </a>
+                                        
+                                    <!-- ⚠️ 2. الشرط الثاني: لو الوردية جارية مع صاحب الحساب الحالي -->
                                     {% elif d.is_owner %}
-                                        {% if d.status_code == 'active' %}
+                                        {% if d.status_code == 'active' or d.status_code == 'تشغيل فعلي (إنتاج)' %}
                                             <!-- 🟡 زر تسجيل توقف المطور -->
                                             <a href="{% url 'quick_action' dredger_id=d.id action_type='stop' %}" class="btn-action btn-stop w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                                                <span style="font-size: 0.85rem; font-weight: 800;">تسجيل توقف</span>
+                                                <span style="font-size: 0.85rem; font-weight: 800;">🛑 تسجيل توقف</span>
                                             </a>
                                         {% else %}
                                             <!-- 🟢 زر بدء تشغيل المطور -->
                                             <a href="{% url 'quick_action' dredger_id=d.id action_type='start' %}" class="btn-action btn-start w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                                                <span style="font-size: 0.85rem; font-weight: 800;">بدء تشغيل</span>
+                                                <span style="font-size: 0.85rem; font-weight: 800;">🚀 بدء تشغيل</span>
+                                            </a>
+
+                                            <!-- 🟠 الـزرار الـسـحـري الـجـديـد: تحديث سبب التوقف أو عطل جديد فوراً وبدون لفة التسليم -->
+                                            <a href="{% url 'quick_action' dredger_id=d.id action_type='stop' %}" class="btn-action shadow-sm w-100" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important; background-color: #fd7e14 !important; border-color: #fd7e14 !important; color: white !important;">
+                                                <span style="font-size: 0.85rem; font-weight: 800;">🔄 عطل / توقف جديد</span>
                                             </a>
                                         {% endif %}
                                         
                                         <!-- 🔴 زر تسليم عهدة المطور والإغلاق اللحظي للمقص -->
                                         <a href="{% url 'quick_action' dredger_id=d.id action_type='handover' %}" class="btn-action btn-handover w-100 shadow-sm" style="min-height: 42px; display: flex !important; align-items: center !important; justify-content: center !important; text-decoration: none !important;">
-                                            <span style="font-size: 0.85rem; font-weight: 800; color: #1a2a3a;">تسليم عهدة</span>
+                                            <span style="font-size: 0.85rem; font-weight: 800; color: #1a2a3a;">🤝 تسليم العهدة</span>
                                         </a>
                                     {% endif %}
 
-                                    <!-- حل مشكلة أزرار الجرد: جعلهم بعرض كامل وتحت بعض أو جنب بعض بتناسق -->
+                                    <!-- أزرار الجرد والأرشيف الموزونة بتمرير الـ ID المظبوط -->
                                     <div class="d-flex gap-2" style="width: 100% !important; display: flex !important;">
-                                        <button type="button" onclick="location.href='{% url 'start_marine_inventory' %}'"
+                                        <button type="button" onclick="location.href='{% url 'start_marine_inventory' d.object.id %}'"
                                                 class="btn shadow-sm"
                                                 style="background-color: #d4af37; color: #1a2a3a; font-size: 0.75rem; border: none; border-radius: 8px; padding: 10px 0; flex: 1 !important; font-weight: 800;">
                                             جرد
                                         </button>
-                                        <button type="button" onclick="location.href='{% url 'marine_inventory_list' %}'"
+                                        <button type="button" onclick="location.href='{% url 'marine_inventory_list' d.object.id %}'"
                                                 class="btn btn-dark shadow-sm"
                                                 style="font-size: 0.75rem; border: none; border-radius: 8px; padding: 10px 0; flex: 1 !important; font-weight: 800;">
                                             أرشيف
                                         </button>
                                     </div>
+
                                 </div>
                                 {% endif %}
                             </div>
 
-                        </div>
-                    </div>
-                </div>
+                        </div> <!-- قفلة الـ row الداخلي الحامي -->
+                    </div> <!-- قفلة الـ vessel-row الأصلي الحامي -->
+                </div> <!-- قفلة الـ col-12 الافتتاحية لكل كارد -->
+                {% endif %} <!-- 1. قفلة الـ if d.can_view الكبرى للمشاهدة -->
+
+                <!-- 🛡️ المكان الهندسي الصحيح والوحيد لحارس الفلترة الأمني: يغلق هنا فوراً قبل الـ endfor لكسر الكاش وطرد الكراكة التانية -->
                 {% endif %}
-            {% endfor %}
+
+            {% endfor %} <!-- 3. قفلة حلقة الـ for d الكبرى الموحدة للسيستم -->
             </div>
         </div>
     </div>
@@ -304,28 +351,52 @@
                 </div>
             </div>
 
-            <!-- 4. كارت لوحة تحليل الأداء والفرز الفني (ANALYTICS) -->
+                        <!-- 4. كارت لوحة تحليل الأداء والفرز الفني (ANALYTICS) -->
             <div class="card-item" style="border-top: 5px solid #28a745;">
                 <i class="fas fa-chart-pie text-success" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
                 <h5>ANALYTICS</h5>
-                <p class="text-muted small mb-3">مؤشرات كفاءة يد الكباتن والمشغلين، ومعدل الحرق والـ 15 وقفة فنية للشهر</p>
+                <p class="text-muted small mb-3">مؤشرات كفاءة الكباتن والمشغلين، ومعدل الحرق والـوقفات الفنية للمده المحدده</p>
                 <a href="/analytics/" class="btn-go" style="background:#28a745;">لوحة فرز وتحليل الأداء</a>
             </div>
 
-            <!-- 5. كارت السولار والمحروقات العام (FUEL MONITOR) -->
-            <div class="card-item" style="border-top: 5px solid #dc3545;">
-                <i class="fas fa-gas-pump text-danger" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
-                <h5>FUEL MONITOR</h5>
-                <p class="text-muted small mb-3">مراقبة ميزان السولار العام وحركات تموين الأسطول والمخزون اللحظي للموقع</p>
-                <a href="{% url 'fuel_report' %}" class="btn-go" style="background:#dc3545;">فتح ميزان السولار</a>
-            </div>
 
-            <!-- 6. كارت دليل كادر موظفي ومهندسي الشركة (STAFF DIRECTORY) -->
-            <div class="card-item" style="border-top: 5px solid #0d6efd;">
-                <i class="fas fa-address-book text-primary" style="font-size: 2.2rem; margin-bottom: 10px;"></i>
-                <h5>STAFF DIRECTORY</h5>
-                <p class="text-muted small mb-3">دليل أسماء وهواتف وجروبات كباتن الكراكة، والمشرفين، والمهندسين بالموقع</p>
-                <a href="/admin/core/staff/" class="btn-go" style="background:#0d6efd;">فتح دليل الهواتف</a>
+            <!-- 5. كارت مستودع الإمداد والطلبات اللوجستية (LOGISTICS & PROCUREMENT) - الرابط المعتمد عندك -->
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <div class="card-item" style="border-top: 5px solid #198754;">
+                <i class="fas fa-boxes" style="font-size: 2.2rem; margin-bottom: 10px; color: #198754;"></i>
+                <h5>LOGISTICS & PROCUREMENT</h5>
+                <p class="text-muted small mb-3">    طلبات الشراء للقطع والادوات، وما تم تنفيذه، ومتابعة الطلبات المعلقة</p>
+                <a href="{% url 'procurement_dashboard' %}" class="btn-go" style="background:#198754;">  طلبات الشراء</a>
+            </div>
+            {% endif %}
+
+            <!-- 6. كارت نظام البلاغات العاجلة الموحد (EMERGENCY SYSTEM) - مطور هندسياً بخيار اختيار الكراكة -->
+            <div class="card-item" style="border-top: 5px solid #3b109c; padding-bottom: 85px !important;">
+                <i class="fas fa-triangle-exclamation" style="font-size: 2.2rem; margin-bottom: 10px; color: #3b109c;"></i>
+                <h5>EMERGENCY SYSTEM</h5>
+                <p class="text-muted small mb-3">نظام البلاغات الفورية لطاقم التكريك والبايب فيتر والإدارة للإبلاغ السريع عن الأعطال لايف</p>
+                
+                <form id="emergencyForm" action="{% url 'raise_emergency_alert' %}" method="POST" style="margin:0; padding:0; width: 100%;">
+                    {% csrf_token %}
+                    
+                    <!-- 📦 1. خانة اختيار الكراكة المستهدفة بالبلاغ (ديناميكية 100%) -->
+                    <select name="dredger_id" required style="width:100%; padding:10px; border-radius:20px; border:2px solid #e2e8f0; font-weight:700; color:#1a2a3a; margin-bottom:10px; outline:none; font-size:0.85rem; text-align:center; box-sizing: border-box; background: white;">
+                        <option value="">-- اختر الكراكة المستهدفة --</option>
+                        {% for d_choice in dredger_status_list %}
+                            <option value="{{ d_choice.id }}">⚓ كراكة {{ d_choice.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="alert_type" style="width:100%; padding:10px; border-radius:20px; border:2px solid #e2e8f0; font-weight:700; color:#1a2a3a; margin-bottom:15px; outline:none; font-size:0.85rem; text-align:center; box-sizing: border-box; background: white;">
+                            <option value="" disabled selected>-- اختر نوع البلاغ العاجل --</option>
+                            <option value="pipe_rubber">🚨 قطع رابر بخط الطرد</option>
+                            <option value="pipe_crack">🚨 شرخ ماسورة بخط الطرد</option>
+                            <option value="pipe_out">🚨 خروج الخط عن المسار</option>
+                            <option value="fuel_urg">⛽ طلب تموين سولار عاجل</option>
+                    </select>
+                </form> 
+                
+                <a href="javascript:void(0);" onclick="if(document.getElementsByName('dredger_id')[0].value == '' || document.getElementsByName('alert_type')[0].value == '') { alert('🚨 من فضلك اختر الكراكة ونوع البلاغ أولاً!'); } else { document.getElementById('emergencyForm').submit(); }" class="btn-go" style="background:#3b109c;">إرسال بلاغ فوري</a>
             </div>
 
         </div>

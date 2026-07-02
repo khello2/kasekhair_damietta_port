@@ -1,0 +1,24 @@
+{
+    "name": "Kased Khair Fleet Portal",
+    "short_name": "Kased Khair",
+    "description": "Damietta Port Dredging Fleet Management System - Kased Khair Co.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a2a3a",
+    "theme_color": "#1a2a3a",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "https://icons8.com",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "https://icons8.com",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
